@@ -49,7 +49,7 @@ const LoginForm = () => {
     }
   
     try {
-      navigate.push('/dashboard');
+      navigate.push('/chat');
     } catch (error) {
       showNotification(error.message, 'error');
       setPassword('');
