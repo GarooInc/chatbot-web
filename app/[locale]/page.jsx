@@ -1,9 +1,10 @@
+import initTranslations from '@/app/i18n';
 import TranslationsProvider from '@/components/TranslationsProvider/TranslationsProvider';
-import initTranslations from '../i18n';
 
 const i18nNamespaces = ['test'];
 
-export default async function Home({ params: { locale } }) {
+export default async function Home({ params }) {
+  const { locale } = await params;
   const { t, resources } = await initTranslations(locale, i18nNamespaces);
 
   return (
