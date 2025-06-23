@@ -1,5 +1,7 @@
 import initTranslations from '@/app/i18n';
 import TranslationsProvider from '@/components/TranslationsProvider/TranslationsProvider';
+import ChatUI from '@/components/ChatUI/ChatUI';
+import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 
 const i18nNamespaces = ['chat'];
 
@@ -13,7 +15,8 @@ export default async function Chat({ params }) {
             locale={locale}
             resources={resources}>
             <div className='h-full w-full'>
-                
+                <ChatUI />
+                <LanguageSwitcher/>
             </div>
     </TranslationsProvider>
     )
