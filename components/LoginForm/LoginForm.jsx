@@ -70,7 +70,7 @@ const LoginForm = () => {
             <input 
               type="text" 
               placeholder="Usuario" 
-              className="input input-bordered bg-gray-200 text-black shadow-md w-full" 
+              className="input input-bordered bg-gray-200 text-black shadow-md w-full rounded-xl" 
               required 
               value={username}
               onChange={handleUsernameChange}
@@ -86,7 +86,7 @@ const LoginForm = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Contraseña"
-                className="input input-bordered w-full pr-10 bg-gray-200 text-black shadow-md"
+                className="input input-bordered w-full pr-10 bg-gray-200 text-black shadow-md rounded-xl"
                 required
                 value={password}
                 onChange={handlePasswordChange}
@@ -115,7 +115,7 @@ const LoginForm = () => {
           <div className="form-control mt-6">
             <button 
               type="submit"
-              className="btn w-full bg-[#E65F2B] text-white hover:bg-[#E65F2B] border-none font-gotham"
+              className="btn w-full bg-[#E65F2B] text-white hover:bg-[#E65F2B] border-none font-gotham rounded-xl"
               disabled={isLoading}
               onClick={handleSubmit}
             >

@@ -21,7 +21,7 @@ export default async function Login({ params }) {
                             <div className="md:absolute inset-0 bg-black opacity-40 hidden md:block"></div>
                             <div className="md:absolute -right-10 top-1/2 transform -translate-y-1/2 h-full w-16 bg-white rounded-xl hidden md:block"></div>
                             <h2 className="text-2xl font-bold text-white font-gotham italic text-center hidden md:absolute md:block bottom-10 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                            Red Tech
+                            Red Tec
                             </h2>
                         </div>
                     </div>
