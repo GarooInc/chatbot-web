@@ -5,6 +5,7 @@ import { IoMdEyeOff } from "react-icons/io";
 import { useRouter } from 'next/navigation';
 import Toast from '../Toast/Toast';
 import { useTranslation } from 'react-i18next';
+import { signIn } from '@/lib/auth';
 
 
 const LoginForm = () => {
@@ -49,7 +50,15 @@ const LoginForm = () => {
     }
   
     try {
-      navigate.push('/chat');
+      const session = await signIn(username.trim(), password.trim());
+      const idToken = session.getIdToken().getJwtToken();
+      localStorage.setItem('cognitoToken', idToken);
+      console.log('Login exitoso. Token:', idToken);
+      showNotification('Inicio de sesión exitoso', 'success');
+      setTimeout(() => {
+        clearNotification();
+        navigate.push('/chat');
+      }, 3000);
     } catch (error) {
       showNotification(error.message, 'error');
       setPassword('');
