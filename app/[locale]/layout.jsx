@@ -21,7 +21,7 @@ const RootLayout = ({ children }) => {
         <meta name="keywords" content="rocknrolla23, rocknrolla, rock, rolla, 23, rocknrolla.23, rocknrolla23.com" />
       </head>
       <body>
-        <main className="app">{children}</main>
+        <main className="app h-screen">{children}</main>
       </body>
     </html>
   );
