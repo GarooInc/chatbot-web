@@ -121,10 +121,10 @@ export default function ChatUI() {
     };
 
     const handleNewConversation = async () => {
-    const newTitle = prompt(t('new_conversation_title'));
-    if (newTitle && currentAgent) {
+    const defaultName = `chat-${conversations.length + 1}`;
+    if (defaultName && currentAgent) {
       try {
-        await createNewConversation(currentAgent, newTitle);
+        await createNewConversation(currentAgent, defaultName);
 
         const refreshed = await fetchConversationsByAgent(currentAgent);
         setConversations(refreshed);
@@ -151,6 +151,11 @@ export default function ChatUI() {
         ]);
       }
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('cognitoToken');
+    navigate.push('/');
   };
 
 
@@ -223,16 +228,22 @@ export default function ChatUI() {
                 }
                 </div>
 
-                <div className={`w-full text-gray-500 text-sm rounded-4xl shadow-md  md:flex justify-between items-center p-4 ${conversations.length > 6 ? 'block' : 'md:absolute md:bottom-4 md:left-1/2 md:transform md:-translate-x-1/2'}`}>
+                <div className={`w-full text-gray-500 text-sm rounded-4xl shadow-md  md:flex justify-between items-center p-4 ${conversations.length > 6 ? 'block md:w-full' : 'md:absolute md:bottom-4 md:left-1/2 md:transform md:-translate-x-1/2 md:w-[90%]'}`}>
                     <div className='flex items-center gap-2'>
                         <button className='text-black hover:text-gray-700 border-1 border-gray-300 rounded-full p-2 transition-colors duration-200'>
                             <IoPersonOutline className='w-6 h-6' />
                          </button>
-                        <span className='text-gray-700 font-semibold uppercase'>User</span>
+                        <span className='text-gray-700 font-semibold uppercase'>
+                          {
+                            localStorage.getItem('username') || t('guest')
+                          }
+                        </span>
                     </div>
                     <button 
                     className='cursor-pointer text-black hover:text-gray-700 border-1 border-gray-300 rounded-full p-2 transition-colors duration-200'
-                        onClick={() => navigate.push('/')}
+                        onClick={
+                            handleLogout
+                        }
                     >
                         <IoExitOutline className='w-6 h-6' />
                     </button>
