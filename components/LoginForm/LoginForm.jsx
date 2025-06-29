@@ -53,6 +53,8 @@ const LoginForm = () => {
       const session = await signIn(username.trim(), password.trim());
       const idToken = session.getIdToken().getJwtToken();
       localStorage.setItem('cognitoToken', idToken);
+      const shortUsername = username.trim().substring(0, 5);
+      localStorage.setItem('username', shortUsername);
       console.log('Login exitoso. Token:', idToken);
       showNotification('Inicio de sesión exitoso', 'success');
       setTimeout(() => {
