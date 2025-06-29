@@ -21,8 +21,9 @@ export default function ChatUI() {
     const [currentAgent, setCurrentAgent] = useState(null);
     const [currentConversationId, setCurrentConversationId] = useState(null);
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
-    const [isLoadingConversations, setIsLoadingConversations] = useState(false);
     const [isLoadingAgents, setIsLoadingAgents] = useState(false);
+    const [username, setUsername] = useState('');
+
 
 
 
@@ -50,6 +51,14 @@ export default function ChatUI() {
 
     loadAgentsAndConversations();
   }, []);
+
+  useEffect(() => {
+  if (typeof window !== 'undefined') {
+    const storedUsername = localStorage.getItem('username');
+    setUsername(storedUsername || t('guest'));
+  }
+}, []);
+
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -171,11 +180,11 @@ export default function ChatUI() {
                             <span className="loading loading-ring loading-xl text-black"></span>
                         </div>
                     ) :(
-                      <div className="w-full flex flex-col flex-1 min-h-0 overflow-hidden">
+                      <div className="w-full flex flex-col flex-1 min-h-0">
                         {agents.length > 0 && (
                           <h4 className="text-md font-light text-gray-400 mb-2 capitalize">{t('agents')}</h4>
                         )}
-                        <ul className="space-y-2 w-full h-1/4">
+                        <ul className="space-y-2 w-full h-1/4 overflow-auto">
                           {agents.map((agent) => (
                               <li
                               key={agent}
@@ -234,9 +243,7 @@ export default function ChatUI() {
                             <IoPersonOutline className='w-6 h-6' />
                          </button>
                         <span className='text-gray-700 font-semibold uppercase'>
-                          {
-                            localStorage.getItem('username') || t('guest')
-                          }
+                            {username || t('guest')}
                         </span>
                     </div>
                     <button 
