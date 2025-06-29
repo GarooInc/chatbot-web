@@ -6,7 +6,7 @@ import { IoPersonOutline } from "react-icons/io5";
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
-import { fetchAgents, fetchConversationsByAgent } from '@/lib/api';
+import { fetchAgents, fetchConversationsByAgent, fetchMessagesByConversation, sendMessageToConversation } from '@/lib/api';
 
 
 export default function ChatUI() {
@@ -20,6 +20,8 @@ export default function ChatUI() {
     const [conversations, setConversations] = useState([]);
     const [currentAgent, setCurrentAgent] = useState(null);
     const [currentConversationId, setCurrentConversationId] = useState(null);
+    const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+
 
 
   useEffect(() => {
@@ -43,13 +45,31 @@ export default function ChatUI() {
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
 
-    const responseMd = `\n\n\`\`\`js\nconsole.log("This is a markdown block");\n\`\`\``;
-    const botMessage = { role: 'assistant', content: responseMd };
+    if (!currentAgent || !currentConversationId) {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: 'Please select an agent and a conversation.' },
+      ]);
+      return;
+    }
 
-    setTimeout(() => {
-      setMessages((prev) => [...prev, botMessage]);
-    }, 600);
+    try {
+      setIsLoadingMessages(true);
+      await sendMessageToConversation(currentAgent, currentConversationId, input);
+
+      const updatedMessages = await fetchMessagesByConversation(currentAgent, currentConversationId);
+      setMessages(updatedMessages);
+    } catch (error) {
+      console.error('Error sending message:', error.message);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: 'Error sending message. Please try again later.' },
+      ]);
+    } finally {
+      setIsLoadingMessages(false); 
+    }
   };
+
 
   const handleAgentChange = async (agent) => {
     setCurrentAgent(agent);
@@ -68,14 +88,22 @@ export default function ChatUI() {
     }
   };
 
-    const handleConversationSelect = (conversation) => {
-    setCurrentConversationId(conversation.conversation_id);
-    setMessages([
-        {
-        role: 'assistant',
-        content: `Cargando conversación "${conversation.conversation_name}"...`,
-        },
-    ]);
+    const handleConversationSelect = async (conversation) => {
+      setCurrentConversationId(conversation.conversation_id);
+      setMessages([]);
+      setIsLoadingMessages(true);
+
+      try {
+        const messagesData = await fetchMessagesByConversation(currentAgent, conversation.conversation_id);
+        setMessages(messagesData);
+      } catch (error) {
+        console.error('Error fetching messages:', error.message);
+        setMessages([
+          { role: 'assistant', content: 'Error fetching messages. Please try again later.' },
+        ]);
+      } finally {
+        setIsLoadingMessages(false);
+      }
     };
 
 
@@ -154,10 +182,16 @@ export default function ChatUI() {
         <div className="flex flex-col h-screen bg-gray-50 md:w-2/3 md:p-12 p-4">
             <div className='flex flex-col gap-4 border-1 border-gray-300 bg-white rounded-xl h-full'>
                 <div className="flex-1 overflow-y-auto p-6 space-y-2">
-                    {messages.map((msg, idx) => (
-                    <ChatMessage key={idx} role={msg.role} content={msg.content} />
-                    ))}
-                </div>
+                    {isLoadingMessages ? (
+                      <div className="flex justify-center items-center h-full">
+                        <span className="loading loading-ring loading-xl text-black"></span>
+                      </div>
+                    ) : (
+                      messages.map((msg, idx) => (
+                        <ChatMessage key={idx} role={msg.role} content={msg.content} />
+                      ))
+                    )}
+                  </div>
                 <form onSubmit={handleSend} className="p-4 border-t bg-white flex items-center gap-2 rounded-2xl">
                     <input
                     type="text"
