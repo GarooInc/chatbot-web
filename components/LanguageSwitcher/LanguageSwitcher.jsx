@@ -36,7 +36,7 @@ const LanguageSwitcher = () => {
 
 
     return (
-        <div className='md:p-4 p-2 flex justify-center items-center absolute top-0 right-2'>
+        <div className='flex justify-end items-center w-full'>
           <div className='flex justify-end'>
             <button onClick={handleChange} value='es' className={`md:mx-2 text-black font-certia ${currentLocale === 'es' ? 'font-bold text-black' : 'font-light text-gray-400'}`}>es</button>
             <div className='md:mx-2 mx-[4px]  font-certia font-light text-gray-400'>|</div>
