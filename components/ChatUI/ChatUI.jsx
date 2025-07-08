@@ -306,7 +306,7 @@ export default function ChatUI() {
                     </span>
                   )
                 }
-                <LanguageSwitcher />
+                {/* <LanguageSwitcher /> */}
               </div>
               <div className="flex-1 overflow-y-scroll space-y-2 px-10 py-4 custom-scrollbar">
                 {messages.map((msg, idx) =>
