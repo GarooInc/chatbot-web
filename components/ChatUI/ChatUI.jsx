@@ -26,6 +26,7 @@ export default function ChatUI() {
     const [currentAgent, setCurrentAgent] = useState(null);
     const [currentConversationId, setCurrentConversationId] = useState(null);
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+    const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
     const [isLoadingAgents, setIsLoadingAgents] = useState(false);
     const [username, setUsername] = useState('');
     const [showMenuLeft, setShowMenuLeft] = useState(false);
@@ -71,8 +72,11 @@ export default function ChatUI() {
     if (!input.trim()) return;
 
     const userMessage = { role: 'user', content: input };
-    setMessages((prev) => [...prev, userMessage]);
+    const tempAssistantMessage = { role: 'assistant', content: '__loading__' };
+
+    setMessages((prev) => [...prev, userMessage, tempAssistantMessage]);
     setInput('');
+    setIsAwaitingResponse(true);
 
     if (!currentAgent || !currentConversationId) {
       setMessages((prev) => [
@@ -83,7 +87,6 @@ export default function ChatUI() {
     }
 
     try {
-      setIsLoadingMessages(true);
       await sendMessageToConversation(currentAgent, currentConversationId, input);
 
       const updatedMessages = await fetchMessagesByConversation(currentAgent, currentConversationId);
@@ -91,13 +94,14 @@ export default function ChatUI() {
     } catch (error) {
       console.error('Error sending message:', error.message);
       setMessages((prev) => [
-        ...prev,
+        ...prev.slice(0, -1),
         { role: 'assistant', content: 'Error sending message. Please try again later.' },
       ]);
     } finally {
-      setIsLoadingMessages(false); 
+      setIsAwaitingResponse(false);
     }
   };
+
 
 
   const handleAgentChange = async (agent) => {
@@ -304,15 +308,16 @@ export default function ChatUI() {
                 }
                 <LanguageSwitcher />
               </div>
-              <div className="flex-1 overflow-y-auto space-y-2 px-10 py-4">
-                {isLoadingMessages ? (
-                  <div className="flex justify-center items-center h-full">
-                    <span className="loading loading-ring loading-xl text-black"></span>
-                  </div>
-                ) : (
-                  messages.map((msg, idx) => (
+              <div className="flex-1 overflow-y-scroll space-y-2 px-10 py-4 custom-scrollbar">
+                {messages.map((msg, idx) =>
+                  msg.content === '__loading__' ? (
+                    <div key={idx} className="space-y-2">
+                      <div className="skeleton bg-gray-200 h-4 w-full py-2"></div>
+                      <div className="skeleton bg-gray-200 h-4 w-3/4"></div>
+                    </div>
+                  ) : (
                     <ChatMessage key={idx} role={msg.role} content={msg.content} />
-                  ))
+                  )
                 )}
               </div>
               <div className='flex flex-col'>

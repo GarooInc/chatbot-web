@@ -1,7 +1,7 @@
 import "@/styles/globals.css";
 
 export const metadata = {
-  title: "Redtech - ChatUI",
+  title: "Redtec - ChatUI",
   description: "CHATUI",  
   image: "/assets/images/home/principal.png",
 };
