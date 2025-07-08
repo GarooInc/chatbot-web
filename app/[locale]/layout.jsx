@@ -3,7 +3,7 @@ import "@/styles/globals.css";
 export const metadata = {
   title: "Redtec - ChatUI",
   description: "CHATUI",  
-  image: "/assets/images/home/principal.png",
+  image: "/assets/images/logos/logo_v1.png",
 };
 
 const RootLayout = ({ children }) => {
@@ -11,8 +11,8 @@ const RootLayout = ({ children }) => {
     <html lang="en">
       <head>
         <title>{metadata.title}</title>
-        <link rel="icon" type="image/png+xml" href="/assets/images/logo.png" />
-        <link rel="apple-touch-icon" href="/assets/images/logo.png" />
+        <link rel="icon" type="image/png+xml" href="/assets/images/logos/logo_v2.png" />
+        <link rel="apple-touch-icon" href="/assets/images/logos/logo_v2.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta property="og:title" content={metadata.title} />
         <meta property="og:description" content={metadata.description} />
