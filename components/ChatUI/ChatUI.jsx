@@ -2,7 +2,7 @@
 import ChatMessage from '../ChatMessage/ChatMessage';
 import { CiCirclePlus } from "react-icons/ci";
 import { IoExitOutline } from "react-icons/io5";
-import { IoPersonOutline } from "react-icons/io5";
+import { IoIosArrowDown } from "react-icons/io";
 import { BsGear } from "react-icons/bs";
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -22,9 +22,12 @@ export default function ChatUI() {
     const navigate = useRouter();
     const { t } = useTranslation();
     const [agents, setAgents] = useState([]);
-    const [conversations, setConversations] = useState([]);
+    const [conversationsToday, setConversationsToday] = useState([]);
+    const [conversationsPrevious, setConversationsPrevious] = useState([]);
     const [currentAgent, setCurrentAgent] = useState(null);
     const [currentConversationId, setCurrentConversationId] = useState(null);
+    const [showToday, setShowToday] = useState(true);
+    const [showPrevious, setShowPrevious] = useState(false);
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
     const [isLoadingAgents, setIsLoadingAgents] = useState(false);
@@ -108,7 +111,8 @@ export default function ChatUI() {
     setCurrentAgent(agent);
     try {
       const conversationsData = await fetchConversationsByAgent(agent);
-      setConversations(conversationsData);
+      setConversationsToday(conversationsData.today || []);
+      setConversationsPrevious(conversationsData.previous || []);
       setMessages([]);
       setMessages([
         { role: 'assistant', content: `Select or create a conversation with ${agent} to start chatting.` },
@@ -140,13 +144,14 @@ export default function ChatUI() {
     };
 
     const handleNewConversation = async () => {
-    const defaultName = `chat-${conversations.length + 1}`;
+    const defaultName = `chat-${conversationsPrevious.length + conversationsToday.length + 1}`;
     if (defaultName && currentAgent) {
       try {
         await createNewConversation(currentAgent, defaultName);
 
         const refreshed = await fetchConversationsByAgent(currentAgent);
-        setConversations(refreshed);
+        setConversationsToday(refreshed.today || []);
+        setConversationsPrevious(refreshed.previous || []);
 
         const newest = refreshed[refreshed.length - 1];
 
@@ -212,7 +217,7 @@ export default function ChatUI() {
             </div>
         </div>
         <div className='flex flex-col md:w-1/3 min-h-0'>
-              <div className='w-full border-b border-gray-300 flex justify-between p-4 items-center'>
+              <div className='w-full border-b border-gray-300 flex justify-between p-4 items-center md:h-14'>
                 <img
                     src="/assets/images/logos/logo_v1.png"
                     alt="Logo"  
@@ -225,7 +230,7 @@ export default function ChatUI() {
                     <CiCirclePlus className='w-6 h-6 cursor-pointer text-gray-400 hover:text-gray-600' />
                   </button>
               </div>
-            <div className='flex flex-col bg-[#F8FAFC] relative gap-4 h-full min-h-0 overflow-hidden flex-1'>
+            <div className='flex flex-col bg-[#F8FAFC] relative gap-4 h-full min-h-0 flex-1'>
                 <div className="flex flex-col w-full flex-1 min-h-0">
                 {
                     isLoadingAgents ? (
@@ -233,11 +238,11 @@ export default function ChatUI() {
                             <span className="loading loading-ring loading-xl text-black"></span>
                         </div>
                     ) :(
-                      <div className="w-full flex flex-col flex-1 min-h-0">
+                      <div className="w-full flex flex-col flex-1 min-h-0 overflow-y-auto">
                         {agents.length > 0 && (
                           <h4 className="text-md font-light text-gray-400 mb-2 capitalize p-4">{t('agents')}</h4>
                         )}
-                        <ul className="space-y-2 w-full h-1/4 overflow-auto">
+                        <ul className="space-y-2 w-full overflow-auto">
                           {agents.map((agent) => (
                               <li
                               key={agent}
@@ -252,57 +257,96 @@ export default function ChatUI() {
                               </li>
                           ))}
                           </ul>
-                        {/* Conversaciones */}
-                        {
-                          agents.length > 0 && currentAgent && (
-                          <div className='flex justify-between border-t border-gray-300 mt-4'>
-                              <h4 className="text-md font-light text-gray-400 mb-2 capitalize p-4">{t('conversations')}</h4>
-                          </div>
-                        )}
-                        {conversations.length > 0 && (
-                            <div className={`flex-1 overflow-y-auto mt-2`}>
-                            
-                            <ul className="space-y-2">
-                                {conversations.map((conv) => (
-                                <li
-                                    key={conv.conversation_id}
-                                    onClick={() => handleConversationSelect(conv)}
-                                    className={`p-2 cursor-pointer ${
-                                    conv.conversation_id === currentConversationId
-                                        ? ' px-4 text-black'
-                                        : 'px-4 text-black  hover:bg-gray-200 hover:border-none'
-                                    }`}
-                                >
-                                    {conv.conversation_name}
-                                </li>
-                                ))}
-                            </ul>
+
+                      {/* Today */}
+                      {conversationsToday.length > 0 && (
+                        <div className="w-full overflow-y-scroll">
+                          <div className='flex justify-between items-center px-4 py-2 text-gray-500 font-semibold w-full'>
+                            <div className='flex gap-2'>
+                              <span>Today</span>
                             </div>
-                        )}
-                      </div>
+                            <button
+                              onClick={() => setShowToday(prev => !prev)}
+                              className="flex items-center  gap-4 text-gray-500 font-semibold cursor-pointer"
+                            >
+                              <span className='font-light'>{conversationsToday.length}</span>
+                              <IoIosArrowDown className={`w-4 h-4 transition-transform duration-200 ${showToday ? 'transform rotate-180' : ''}`} />
+                            </button>
+                          </div>
+                          {showToday && (
+                            <ul className="space-y-1">
+                              {conversationsToday.map((conv) => (
+                                <li
+                                  key={conv.conversation_id}
+                                  onClick={() => handleConversationSelect(conv)}
+                                  className={`px-4 py-2 cursor-pointer text-sm ${
+                                    conv.conversation_id === currentConversationId
+                                      ? 'bg-gray-200 text-black rounded'
+                                      : 'text-black hover:bg-gray-100 rounded'
+                                  }`}
+                                >
+                                  {conv.conversation_name}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Previous 7 Days */}
+                      {conversationsPrevious.length > 0 && (
+                        <div className="w-full mt-4">
+                          <div className='flex justify-between items-center px-4 py-2 text-gray-500 font-semibold w-full'>
+                            <div className='flex gap-2'>
+                              <span>Previous</span>
+                            </div>
+                            <button
+                              onClick={() => setShowPrevious(prev => !prev)}
+                              className="flex items-center gap-4 text-gray-500 font-semibold cursor-pointer"
+                            > 
+                              <span className='font-light'>{conversationsPrevious.length}</span>
+                              <IoIosArrowDown className={`w-4 h-4 transition-transform duration-200 ${showPrevious ? 'transform rotate-180' : ''}`} />
+                            </button>
+                          </div>
+                          {showPrevious && (
+                            <ul className="space-y-1">
+                              {conversationsPrevious.map((conv) => (
+                                <li
+                                  key={conv.conversation_id}
+                                  onClick={() => handleConversationSelect(conv)}
+                                  className={`px-4 py-2 cursor-pointer text-sm ${
+                                    conv.conversation_id === currentConversationId
+                                      ? 'bg-gray-200 text-black rounded'
+                                      : 'text-black hover:bg-gray-100 rounded'
+                                  }`}
+                                >
+                                  {conv.conversation_name}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      )}
+
+                    </div>
                     )
                 }
                 </div>
-
-                {/* <div className={`w-full text-gray-500 text-sm rounded-4xl shadow-md  md:flex justify-between items-center p-4 ${conversations.length > 6 ? 'block md:w-full' : 'md:absolute md:bottom-4 md:left-1/2 md:transform md:-translate-x-1/2 md:w-[90%]'}`}>
-                    <div className='flex items-center gap-2'>
-                        <button className='text-black hover:text-gray-700 border-1 border-gray-300 rounded-full p-2 transition-colors duration-200'>
-                            <IoPersonOutline className='w-6 h-6' />
-                         </button>
-                        <span className='text-gray-700 font-semibold uppercase'>
-                            {username || t('guest')}
-                        </span>
-                    </div>
-                </div> */}
             </div>
         </div>
         <div className="flex flex-col h-screen  md:w-2/3">
           <div className='flex flex-col bg-white h-full'>
-              <div className="flex items-center justify-between p-4 border-b border-gray-300 bg-white">
+              <div className="flex items-center justify-between p-4 border-b border-gray-300 bg-white md:h-14">
                 {
                   currentAgent && (
                     <span className="text-gray-700 font-bold text-sm">
-                      {currentAgent}
+                      {currentAgent} - {currentConversationId
+                      ? (
+                          [...conversationsPrevious, ...conversationsToday].find(
+                            conv => conv.conversation_id === currentConversationId
+                          )?.conversation_name || 'New Conversation'
+                        )
+                      : " " }
                     </span>
                   )
                 }
