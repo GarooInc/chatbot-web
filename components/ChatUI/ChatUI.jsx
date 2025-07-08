@@ -28,6 +28,7 @@ export default function ChatUI() {
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const [isLoadingAgents, setIsLoadingAgents] = useState(false);
     const [username, setUsername] = useState('');
+    const [showMenuLeft, setShowMenuLeft] = useState(false);
 
 
 
@@ -175,22 +176,35 @@ export default function ChatUI() {
 
   return (
     <div className='flex w-full bg-[#F8FAFC] md:flex-row flex-col h-full max-h-screen'>
-        <div className='flex flex-col p-4 bg-white justify-between'>
-            <div className='flex flex-col'>
+        <div className='flex md:flex-col bg-white justify-between p-4'>
+            <div className='flex md:flex-col items-center'>
               <img
-                src="/assets/images/logos/logo_v1.png"
+                src="/assets/images/logos/logo_v2.png"
                 alt="Logo"  
-                className="w-20 h-auto mb-4 mx-auto md:mx-0"
+                className="md:w-8 w-4 h-4 md:h-auto mb-4 mx-auto md:mx-0"
               /> 
               <MenuLeft />
             </div>
             <div className='flex flex-col items-center gap-6'>
                 <BsGear className='w-10 h-10 text-[#475569] cursor-pointer hover:bg-[#F8FAFC] hover:text-gray-700 rounded-full p-2' />
+                <button 
+                    className='cursor-pointer text-[#475569] hover:bg-[#F8FAFC] hover:text-gray-700 rounded-full p-2'
+                        onClick={
+                            handleLogout
+                        }
+                    >
+                        <IoExitOutline className='w-6 h-6' />
+                </button>
+                <button 
+                className='relative cursor-pointer'
+                onClick={showMenuLeft ? () => setShowMenuLeft(false) : () => setShowMenuLeft(true)}
+                >
                 <img 
                   src="/assets/images/chat/avatar.png"
                   alt="Avatar"
                   className="w-10 h-10 rounded-full mb-4"
                 />
+                </button>
             </div>
         </div>
         <div className='flex flex-col md:w-1/3 min-h-0'>
@@ -275,20 +289,19 @@ export default function ChatUI() {
                             {username || t('guest')}
                         </span>
                     </div>
-                    <button 
-                    className='cursor-pointer text-black hover:text-gray-700 border-1 border-gray-300 rounded-full p-2 transition-colors duration-200'
-                        onClick={
-                            handleLogout
-                        }
-                    >
-                        <IoExitOutline className='w-6 h-6' />
-                    </button>
                 </div> */}
             </div>
         </div>
         <div className="flex flex-col h-screen  md:w-2/3">
           <div className='flex flex-col bg-white h-full'>
               <div className="flex items-center justify-between p-4 border-b border-gray-300 bg-white">
+                {
+                  currentAgent && (
+                    <span className="text-gray-700 font-bold text-sm">
+                      {currentAgent}
+                    </span>
+                  )
+                }
                 <LanguageSwitcher />
               </div>
               <div className="flex-1 overflow-y-auto space-y-2 px-10 py-4">
@@ -306,7 +319,7 @@ export default function ChatUI() {
                 <form onSubmit={handleSend} className="border rounded-full bg-white flex items-center gap-2 m-4 mx-10 p-2">
                     <input
                     type="text"
-                    className={`flex-1 rounded-xl focus:outline-none focus:ring-none bg-white ${!currentAgent || !currentConversationId ? 'bg-gray-100 cursor-not-allowed' : 'bg-white text-black'}`}
+                    className={`flex-1 rounded-xl focus:outline-none focus:ring-none bg-white p-2 ${!currentAgent || !currentConversationId ? 'bg-gray-100 cursor-not-allowed' : 'bg-white text-black'}`}
                     placeholder={t('message')}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -315,7 +328,7 @@ export default function ChatUI() {
                     type="submit"
                     className="bg-[#CC1D1A] hover:bg-red-600 text-white p-2 rounded-full"
                     >
-                        <FaArrowUp className="w-5 h-5" />
+                        <FaArrowUp className="w-4 h-4" />
                     </button>
                 </form>
                 <span className="text-gray-500 text-sm p-4 text-center">
