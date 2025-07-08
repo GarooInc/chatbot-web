@@ -153,7 +153,9 @@ export default function ChatUI() {
         setConversationsToday(refreshed.today || []);
         setConversationsPrevious(refreshed.previous || []);
 
-        const newest = refreshed[refreshed.length - 1];
+        console.log('New conversation created successfully:', refreshed);
+
+        const newest = refreshed.today[0];
 
         if (!newest || !newest.conversation_id) {
           setMessages((prev) => [
