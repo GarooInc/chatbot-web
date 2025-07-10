@@ -47,3 +47,27 @@ body {
   background-color: #c4c4c4;
   border-radius: 4px;
 }
+
+.mdown h1{
+  @apply text-xl font-bold mb-4 pt-2;
+}
+
+.mdown h2 {
+  @apply text-lg font-semibold mb-3 pt-2;
+}
+
+.mdown p {
+  @apply text-base text-justify;
+}
+
+.mdown table {
+  @apply w-full text-sm mb-4 overflow-x-auto max-w-full;
+}
+
+.mdown table th {
+  @apply bg-gray-200 px-4 py-2 text-left border border-black;
+}
+
+.mdown table td {
+  @apply border px-4 py-2;
+}
