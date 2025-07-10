@@ -1,4 +1,5 @@
 'use client';
+import React, { useRef } from 'react';
 import ChatMessage from '../ChatMessage/ChatMessage';
 import { CiCirclePlus } from "react-icons/ci";
 import { IoExitOutline } from "react-icons/io5";
@@ -9,8 +10,9 @@ import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { fetchAgents, fetchConversationsByAgent, fetchMessagesByConversation, sendMessageToConversation, createNewConversation } from '@/lib/api';
 import MenuLeft from '../MenuLeft/MenuLeft';
-import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 import { FaArrowUp } from "react-icons/fa";
+import { checkSession, signOut } from '@/lib/auth';
+
 
 
 
@@ -28,18 +30,35 @@ export default function ChatUI() {
     const [currentConversationId, setCurrentConversationId] = useState(null);
     const [showToday, setShowToday] = useState(true);
     const [showPrevious, setShowPrevious] = useState(false);
+    const [showAgents, setShowAgents] = useState(false);
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
     const [isLoadingAgents, setIsLoadingAgents] = useState(false);
     const [username, setUsername] = useState('');
     const [showMenuLeft, setShowMenuLeft] = useState(false);
+    const bottomRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
 
-
+  const validateSession = async () => {
+      try {
+        await checkSession();
+        console.log('Session is valid. User is authenticated.');
+      } catch (err) {
+        console.warn('Session expired or user not authenticated. Redirecting to login...');
+        navigate.push('/'); 
+        localStorage.removeItem('cognitoToken');
+        localStorage.removeItem('original_exp');
+      }
+  };
 
   useEffect(() => {
     async function loadAgentsAndConversations() {
       try {
+        await validateSession();
         const agentsData = await fetchAgents();
         setIsLoadingAgents(true);
         try {
@@ -58,20 +77,26 @@ export default function ChatUI() {
         console.error(error.message);
       }
     }
-
     loadAgentsAndConversations();
   }, []);
 
+
   useEffect(() => {
-  if (typeof window !== 'undefined') {
-    const storedUsername = localStorage.getItem('username');
-    setUsername(storedUsername || t('guest'));
-  }
-}, []);
+    if (typeof window !== 'undefined') {
+      const storedUsername = localStorage.getItem('username');
+      setUsername(storedUsername || t('guest'));
+    }
+  }, []);
 
 
   const handleSend = async (e) => {
     e.preventDefault();
+    try {
+      await validateSession(); 
+    } catch {
+      return;
+    }
+    
     if (!input.trim()) return;
 
     const userMessage = { role: 'user', content: input };
@@ -108,6 +133,11 @@ export default function ChatUI() {
 
 
   const handleAgentChange = async (agent) => {
+    try {
+      await validateSession(); 
+    } catch {
+      return;
+    }
     setCurrentAgent(agent);
     try {
       const conversationsData = await fetchConversationsByAgent(agent);
@@ -144,6 +174,11 @@ export default function ChatUI() {
     };
 
     const handleNewConversation = async () => {
+    try {
+      await validateSession(); 
+    } catch {
+      return;
+    }
     const defaultName = `chat-${conversationsPrevious.length + conversationsToday.length + 1}`;
     if (defaultName && currentAgent) {
       try {
@@ -178,7 +213,7 @@ export default function ChatUI() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('cognitoToken');
+    signOut();
     navigate.push('/');
   };
 
@@ -238,11 +273,11 @@ export default function ChatUI() {
                             <span className="loading loading-ring loading-xl text-black"></span>
                         </div>
                     ) :(
-                      <div className="w-full flex flex-col flex-1 min-h-0 overflow-y-auto">
+                      <div className="w-full flex flex-col flex-1 overflow-y-auto">
                         {agents.length > 0 && (
-                          <h4 className="text-md font-light text-gray-400 mb-2 capitalize p-4">{t('agents')}</h4>
+                          <h4 className="text-md font-light text-gray-400 mb-2 capitalize py-2 px-4">{t('agents')}</h4>
                         )}
-                        <ul className="space-y-2 w-full overflow-auto">
+                        <ul className="space-y-2 w-full">
                           {agents.map((agent) => (
                               <li
                               key={agent}
@@ -260,7 +295,7 @@ export default function ChatUI() {
 
                       {/* Today */}
                       {conversationsToday.length > 0 && (
-                        <div className="w-full overflow-y-scroll">
+                        <div className="w-full overflow-y-scroll min-h-20">
                           <div className='flex justify-between items-center px-4 py-2 text-gray-500 font-semibold w-full'>
                             <div className='flex gap-2'>
                               <span>Today</span>
@@ -350,7 +385,6 @@ export default function ChatUI() {
                     </span>
                   )
                 }
-                {/* <LanguageSwitcher /> */}
               </div>
               <div className="flex-1 overflow-y-scroll space-y-2 px-10 py-4 custom-scrollbar">
                 {messages.map((msg, idx) =>
@@ -363,6 +397,7 @@ export default function ChatUI() {
                     <ChatMessage key={idx} role={msg.role} content={msg.content} />
                   )
                 )}
+                <div ref={bottomRef} />
               </div>
               <div className='flex flex-col'>
                 <form onSubmit={handleSend} className="border rounded-full bg-white flex items-center gap-2 m-4 mx-10 p-2">
@@ -372,10 +407,17 @@ export default function ChatUI() {
                     placeholder={t('message')}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
+                    disabled={!currentAgent || !currentConversationId}
+                    onKeyDown={(e) => {
+                      if (e.code === 'Space' || e.key === ' ') {
+                        e.stopPropagation();
+                      }
+                    }}
                     />
                     <button
                     type="submit"
-                    className="bg-[#CC1D1A] hover:bg-red-600 text-white p-2 rounded-full"
+                    disabled={!currentAgent || !currentConversationId || isAwaitingResponse}
+                    className={`bg-[#CC1D1A] hover:bg-red-600 text-white p-2 rounded-full transition-colors duration-200 ${!currentAgent || !currentConversationId || isAwaitingResponse ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         <FaArrowUp className="w-4 h-4" />
                     </button>
