@@ -60,7 +60,7 @@ const LoginForm = () => {
       setTimeout(() => {
         clearNotification();
         navigate.push('/chat');
-      }, 3000);
+      }, 1000);
     } catch (error) {
       showNotification(error.message, 'error');
       setPassword('');
