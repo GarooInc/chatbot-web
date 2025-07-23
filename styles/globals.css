@@ -61,7 +61,7 @@ body {
 }
 
 .mdown table {
-  @apply w-full text-sm mb-4 overflow-x-auto max-w-full;
+  @apply w-full text-sm my-4 overflow-x-auto max-w-full;
 }
 
 .mdown table th {
@@ -70,4 +70,8 @@ body {
 
 .mdown table td {
   @apply border px-4 py-2;
+}
+
+.mdown li {
+  @apply list-disc mb-4;
 }

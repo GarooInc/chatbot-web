@@ -1,7 +1,7 @@
 'use client';
 import React, { useRef } from 'react';
 import ChatMessage from '../ChatMessage/ChatMessage';
-import { CiCirclePlus } from "react-icons/ci";
+import { IoIosAddCircle } from "react-icons/io";
 import { IoExitOutline } from "react-icons/io5";
 import { IoIosArrowDown } from "react-icons/io";
 import { BsGear } from "react-icons/bs";
@@ -259,10 +259,10 @@ export default function ChatUI() {
                     className="w-20 h-auto mx-auto md:mx-0"
                   /> 
                   <button
-                    className="text-gray-500 hover:text-gray-700"
+                    className={`h-8 w-8 rounded-full transition-colors duration-200 text-[#CC1D1A] ${!currentAgent ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:text-red-600 '}`}
                     onClick={handleNewConversation}
                   >
-                    <CiCirclePlus className='w-6 h-6 cursor-pointer text-gray-400 hover:text-gray-600' />
+                    <IoIosAddCircle className='w-full h-full' />
                   </button>
               </div>
             <div className='flex flex-col bg-[#F8FAFC] relative gap-4 h-full min-h-0 flex-1'>
