@@ -115,9 +115,9 @@ export default function ChatUI() {
     }
 
     try {
-      await sendMessageToConversation(currentAgent, currentConversationId, input);
+      await sendMessageToConversation(currentConversationId, input);
 
-      const updatedMessages = await fetchMessagesByConversation(currentAgent, currentConversationId);
+      const updatedMessages = await fetchMessagesByConversation(currentConversationId);
       setMessages(updatedMessages);
     } catch (error) {
       console.error('Error sending message:', error.message);
@@ -139,13 +139,14 @@ export default function ChatUI() {
       return;
     }
     setCurrentAgent(agent);
+    console.log('Selected agent:', agent);
     try {
-      const conversationsData = await fetchConversationsByAgent(agent);
+      const conversationsData = await fetchConversationsByAgent(agent.agent_id);
       setConversationsToday(conversationsData.today || []);
       setConversationsPrevious(conversationsData.previous || []);
       setMessages([]);
       setMessages([
-        { role: 'assistant', content: `Select or create a conversation with ${agent} to start chatting.` },
+        { role: 'assistant', content: `Select or create a conversation with ${agent.agent_name} to start chatting.` },
       ]);
     } catch (error) {
       console.error('Error fetching conversations:', error.message);
@@ -161,7 +162,7 @@ export default function ChatUI() {
       setIsLoadingMessages(true);
 
       try {
-        const messagesData = await fetchMessagesByConversation(currentAgent, conversation.conversation_id);
+        const messagesData = await fetchMessagesByConversation(conversation.conversation_id);
         setMessages(messagesData);
       } catch (error) {
         console.error('Error fetching messages:', error.message);
@@ -182,9 +183,9 @@ export default function ChatUI() {
     const defaultName = `chat-${conversationsPrevious.length + conversationsToday.length + 1}`;
     if (defaultName && currentAgent) {
       try {
-        await createNewConversation(currentAgent, defaultName);
+        await createNewConversation(currentAgent.agent_id, defaultName);
 
-        const refreshed = await fetchConversationsByAgent(currentAgent);
+        const refreshed = await fetchConversationsByAgent(currentAgent.agent_id);
         setConversationsToday(refreshed.today || []);
         setConversationsPrevious(refreshed.previous || []);
 
@@ -200,7 +201,7 @@ export default function ChatUI() {
 
         setCurrentConversationId(newest.conversation_id);
 
-        const messages = await fetchMessagesByConversation(currentAgent, newest.conversation_id);
+        const messages = await fetchMessagesByConversation(newest.conversation_id);
         setMessages(messages);
       } catch (error) {
         console.error('Error creating new conversation:', error.message);
@@ -278,21 +279,20 @@ export default function ChatUI() {
                           <h4 className="text-md font-light text-gray-400 mb-2 capitalize py-2 px-4">{t('agents')}</h4>
                         )}
                         <ul className="space-y-2 w-full">
-                          {agents.map((agent) => (
-                              <li
-                              key={agent}
-                              onClick={() => handleAgentChange(agent)}
-                              className={`px-4 py-2 text-start cursor-pointer transition-colors duration-200 ${
-                                  agent === currentAgent
-                                  ? 'bg-gray-200 text-black'
-                                  : 'bg-white text-black  hover:bg-gray-200 hover:border-none'
-                              }`}
-                              >
-                              {agent}
-                              </li>
-                          ))}
-                          </ul>
-
+                        {agents.map((agent) => (
+                          <li
+                            key={agent.agent_id}
+                            onClick={() => handleAgentChange(agent)}
+                            className={`px-4 py-2 text-start cursor-pointer transition-colors duration-200 ${
+                              agent === currentAgent
+                                ? 'bg-gray-200 text-black'
+                                : 'bg-white text-black hover:bg-gray-200 hover:border-none'
+                            }`}
+                          >
+                            {agent.agent_name}
+                          </li>
+                        ))}
+                      </ul>
                       {/* Today */}
                       {conversationsToday.length > 0 && (
                         <div className="w-full overflow-y-scroll min-h-20">
@@ -375,13 +375,13 @@ export default function ChatUI() {
                 {
                   currentAgent && (
                     <span className="text-gray-700 font-bold text-sm">
-                      {currentAgent} - {currentConversationId
+                      {currentAgent.agent_name} - {currentConversationId
                       ? (
                           [...conversationsPrevious, ...conversationsToday].find(
                             conv => conv.conversation_id === currentConversationId
                           )?.conversation_name || 'New Conversation'
                         )
-                      : " " }
+                      : " "}
                     </span>
                   )
                 }
