@@ -371,11 +371,20 @@ export default function ChatUI() {
         </div>
         <div className="flex flex-col h-screen  md:w-2/3">
           <div className='flex flex-col bg-white h-full'>
-              <div className="flex items-center justify-between p-4 border-b border-gray-300 bg-white md:h-14">
+              <div className="flex items-center justify-start p-4 border-b border-gray-300 bg-white md:h-14">
+                {
+                  currentAgent && (
+                    <img
+                      src={currentAgent.business_logo_url || ''}
+                      alt={currentAgent.agent_name}
+                      className="w-40 mr-2"
+                    />
+                  )
+                }
                 {
                   currentAgent && (
                     <span className="text-gray-700 font-bold text-sm">
-                      {currentAgent.agent_name} - {currentConversationId
+                      - {currentConversationId
                       ? (
                           [...conversationsPrevious, ...conversationsToday].find(
                             conv => conv.conversation_id === currentConversationId
