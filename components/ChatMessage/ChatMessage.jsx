@@ -6,15 +6,23 @@ import rehypeRaw from 'rehype-raw';
 
 export default function ChatMessage({ role, content }) {
   const isUser = role === 'user';
+  
+  function Seccion({ children, ...props }) {
+    return <section {...props}>{children}</section>;
+  }
 
   return (
     <div className={`w-full flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className={`w-full md:w-auto md:max-w-2xl rounded-2xl px-4 py-3 overflow-x-scroll  ${isUser ? 'bg-gray-100 text-black' : 'bg-white text-black'}`}>
+      <div className={`w-full md:w-auto md:max-w-2xl rounded-2xl px-4 py-3 overflow-x-scroll ${isUser ? 'bg-gray-100 text-black' : 'bg-white text-black'}`}>
         <div className="prose max-w-none mdown">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeRaw, rehypeHighlight]}
             components={{
+              seccion: Seccion,
+              p({ node, children, ...props }) {
+                return <div {...props}>{children}</div>;
+              },
               img({ src, alt }) {
                 if (!src) return null;
                 return <img src={src} alt={alt} className="max-w-full h-auto rounded" />;
@@ -24,7 +32,7 @@ export default function ChatMessage({ role, content }) {
                   <code className="bg-gray-100 rounded px-1">{children}</code>
                 ) : (
                   <pre className="overflow-x-auto rounded-lg bg-gray-900 text-white p-4 my-2">
-                    <code className="text-sm" {...props}>
+                    <code className={`text-sm ${className || ''}`} {...props}>
                       {children}
                     </code>
                   </pre>
