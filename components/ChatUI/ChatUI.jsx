@@ -4,11 +4,13 @@ import ChatMessage from '../ChatMessage/ChatMessage';
 import { IoIosAddCircle } from "react-icons/io";
 import { IoExitOutline } from "react-icons/io5";
 import { IoIosArrowDown } from "react-icons/io";
+import { FaStop } from "react-icons/fa6";
 import { BsGear } from "react-icons/bs";
+import { TbLayoutSidebarLeftCollapseFilled } from "react-icons/tb";
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
-import { fetchAgents, fetchConversationsByAgent, fetchMessagesByConversation, sendMessageToConversation, createNewConversation } from '@/lib/api';
+import { fetchAgents, fetchConversationsByAgent, fetchMessagesByConversation, sendMessageToConversation, createNewConversation, streamMessageToConversation } from '@/lib/api';
 import MenuLeft from '../MenuLeft/MenuLeft';
 import { FaArrowUp } from "react-icons/fa";
 import { checkSession, signOut } from '@/lib/auth';
@@ -37,6 +39,10 @@ export default function ChatUI() {
     const [username, setUsername] = useState('');
     const [showMenuLeft, setShowMenuLeft] = useState(false);
     const bottomRef = useRef(null);
+    const [abortCtrl, setAbortCtrl] = useState(null);
+    const [showConversations, setShowConversations] = useState(true);
+
+
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -89,45 +95,131 @@ export default function ChatUI() {
   }, []);
 
 
+  // const handleSend = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     await validateSession(); 
+  //   } catch {
+  //     return;
+  //   }
+    
+  //   if (!input.trim()) return;
+
+  //   const userMessage = { role: 'user', content: input };
+  //   const tempAssistantMessage = { role: 'assistant', content: '__loading__' };
+
+  //   setMessages((prev) => [...prev, userMessage, tempAssistantMessage]);
+  //   setInput('');
+  //   setIsAwaitingResponse(true);
+
+  //   if (!currentAgent || !currentConversationId) {
+  //     setMessages((prev) => [
+  //       ...prev,
+  //       { role: 'assistant', content: 'Please select an agent and a conversation.' },
+  //     ]);
+  //     return;
+  //   }
+
+  //   try {
+  //     await sendMessageToConversation(currentConversationId, input);
+
+  //     const updatedMessages = await fetchMessagesByConversation(currentConversationId);
+  //     setMessages(updatedMessages);
+  //   } catch (error) {
+  //     console.error('Error sending message:', error.message);
+  //     setMessages((prev) => [
+  //       ...prev.slice(0, -1),
+  //       { role: 'assistant', content: 'Error sending message. Please try again later.' },
+  //     ]);
+  //   } finally {
+  //     setIsAwaitingResponse(false);
+  //   }
+  // };
+
   const handleSend = async (e) => {
     e.preventDefault();
     try {
-      await validateSession(); 
+      await validateSession();
     } catch {
       return;
     }
-    
+
     if (!input.trim()) return;
 
-    const userMessage = { role: 'user', content: input };
-    const tempAssistantMessage = { role: 'assistant', content: '__loading__' };
-
-    setMessages((prev) => [...prev, userMessage, tempAssistantMessage]);
-    setInput('');
-    setIsAwaitingResponse(true);
-
     if (!currentAgent || !currentConversationId) {
-      setMessages((prev) => [
+      setMessages(prev => [
         ...prev,
         { role: 'assistant', content: 'Please select an agent and a conversation.' },
       ]);
       return;
     }
 
-    try {
-      await sendMessageToConversation(currentConversationId, input);
+    const userText = input;
+    setInput('');
 
-      const updatedMessages = await fetchMessagesByConversation(currentConversationId);
-      setMessages(updatedMessages);
-    } catch (error) {
-      console.error('Error sending message:', error.message);
-      setMessages((prev) => [
-        ...prev.slice(0, -1),
-        { role: 'assistant', content: 'Error sending message. Please try again later.' },
-      ]);
-    } finally {
-      setIsAwaitingResponse(false);
+    setMessages(prev => [
+      ...prev,
+      { role: 'user', content: userText },
+      { role: 'assistant', content: '' }
+    ]);
+    setIsAwaitingResponse(true);
+
+    const controller = new AbortController();
+    setAbortCtrl(controller);
+
+    try {
+      await streamMessageToConversation(
+        currentConversationId,
+        userText,
+        {
+          signal: controller.signal,
+          onToken: (chunk) => {
+            setMessages(prev => {
+              if (prev.length === 0) return prev;
+              const updated = [...prev];
+              const lastIdx = updated.length - 1;
+              const last = updated[lastIdx];
+              if (!last || last.role !== 'assistant') return prev;
+              updated[lastIdx] = { ...last, content: last.content + chunk };
+              return updated;
+            });
+          },
+          onDone: async () => {
+            setIsAwaitingResponse(false);
+            setAbortCtrl(null);
+            // const updatedMsgs = await fetchMessagesByConversation(currentConversationId);
+            // setMessages(updatedMsgs);
+          },
+          onError: (err) => {
+            console.error('Stream error:', err);
+            setIsAwaitingResponse(false);
+            setAbortCtrl(null);
+            setMessages(prev => {
+              const updated = [...prev];
+              const lastIdx = updated.length - 1;
+              if (updated[lastIdx]?.role === 'assistant') {
+                updated[lastIdx] = {
+                  role: 'assistant',
+                  content: 'Error streaming response. Please try again.'
+                };
+              }
+              return updated;
+            });
+          },
+        }
+      );
+    } catch (err) {
     }
+  };
+
+  const handleStop = () => {
+    if (abortCtrl) abortCtrl.abort();
+    setIsAwaitingResponse(false);
+    setAbortCtrl(null);
+  };
+
+  const handleShowConversations = () => {
+    setShowConversations(prev => !prev);
   };
 
 
@@ -223,11 +315,18 @@ export default function ChatUI() {
     <div className='flex w-full bg-[#F8FAFC] md:flex-row flex-col h-full max-h-screen'>
         <div className='flex md:flex-col bg-white justify-between p-4'>
             <div className='flex md:flex-col items-center'>
-              <img
-                src="/assets/images/logos/logo_v2.png"
-                alt="Logo"  
-                className="md:w-8 w-4 h-4 md:h-auto mb-4 mx-auto md:mx-0"
+              <button
+                className={`mb-4 focus:outline-none ${showConversations ? '' : 'cursor-pointer'}`}
+                onClick={
+                  showConversations ? () => {} : () => setShowConversations(true)
+                }
+              >
+                <img
+                  src="/assets/images/logos/logo_v2.png"
+                  alt="Logo"
+                  className="md:w-8 w-4 h-4 md:h-auto mb-4 mx-auto md:mx-0"
               /> 
+              </button>
               <MenuLeft />
             </div>
             <div className='flex flex-col items-center gap-6'>
@@ -252,7 +351,7 @@ export default function ChatUI() {
                 </button>
             </div>
         </div>
-        <div className='flex flex-col md:w-1/3 min-h-0'>
+        <div className={`flex flex-col md:w-1/3 min-h-0 ${showConversations ? 'block' : 'hidden'} `}>
               <div className='w-full border-b border-gray-300 flex justify-between p-4 items-center md:h-14'>
                 <img
                     src="/assets/images/logos/logo_v1.png"
@@ -276,7 +375,15 @@ export default function ChatUI() {
                     ) :(
                       <div className="w-full flex flex-col flex-1 overflow-y-auto">
                         {agents.length > 0 && (
-                          <h4 className="text-md font-light text-gray-400 mb-2 capitalize py-2 px-4">{t('agents')}</h4>
+                        <div className='flex justify-between'>
+                            <h4 className="text-md font-light text-gray-400 mb-2 capitalize py-2 px-4">{t('agents')}</h4>
+                          <button
+                            className="h-8 w-8 rounded-full transition-colors duration-200 text-[#CC1D1A] cursor-pointer"
+                            onClick={handleShowConversations}
+                          >
+                            <TbLayoutSidebarLeftCollapseFilled className='w-6 h-6' />
+                        </button>
+                        </div>
                         )}
                         <ul className="space-y-2 w-full">
                         {agents.map((agent) => (
@@ -369,7 +476,7 @@ export default function ChatUI() {
                 </div>
             </div>
         </div>
-        <div className="flex flex-col h-screen  md:w-2/3">
+        <div className={`flex flex-col h-screen ${showConversations ? 'md:w-2/3' : 'w-full'} flex-1 min-h-0`}>
           <div className='flex flex-col bg-white h-full'>
               <div className="flex items-center justify-start p-4 border-b border-gray-300 bg-white md:h-14">
                 {
@@ -396,6 +503,18 @@ export default function ChatUI() {
                 }
               </div>
               <div className="flex-1 overflow-y-scroll space-y-2 px-10 py-4 custom-scrollbar">
+                {
+                  !currentAgent && !currentConversationId && (
+                    <div className="flex flex-col gap-2 justify-center items-center h-full">
+                      <span className="text-black text-xl">
+                        What do you need today, {username}?
+                      </span>
+                      <span className="text-gray-500 text-sm">
+                        Select an agent and a conversation to start chatting.
+                      </span>
+                    </div>
+                  )
+                }
                 {messages.map((msg, idx) =>
                   msg.content === '__loading__' ? (
                     <div key={idx} className="space-y-2">
@@ -423,13 +542,23 @@ export default function ChatUI() {
                       }
                     }}
                     />
-                    <button
-                    type="submit"
-                    disabled={!currentAgent || !currentConversationId || isAwaitingResponse}
-                    className={`bg-[#CC1D1A] hover:bg-red-600 text-white p-2 rounded-full transition-colors duration-200 ${!currentAgent || !currentConversationId || isAwaitingResponse ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
+                    {!isAwaitingResponse ? (
+                      <button
+                        type="submit"
+                        disabled={!currentAgent || !currentConversationId}
+                        className={`bg-[#CC1D1A] hover:bg-red-600 text-white p-2 rounded-full ${!currentAgent || !currentConversationId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
                         <FaArrowUp className="w-4 h-4" />
-                    </button>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleStop}
+                        className=" p-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600"
+                      >
+                        <FaStop className="w-4 h-4 text-[#CC1D1A]" />
+                      </button>
+                    )}
                 </form>
                 <span className="text-gray-500 text-sm p-4 text-center">
                     {t('chat_ui_footer')}
