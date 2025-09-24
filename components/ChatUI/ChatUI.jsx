@@ -41,6 +41,8 @@ export default function ChatUI() {
     const bottomRef = useRef(null);
     const [abortCtrl, setAbortCtrl] = useState(null);
     const [showConversations, setShowConversations] = useState(true);
+    const abortedByUserRef = useRef(false);
+
 
 
 
@@ -95,49 +97,9 @@ export default function ChatUI() {
   }, []);
 
 
-  // const handleSend = async (e) => {
-  //   e.preventDefault();
-  //   try {
-  //     await validateSession(); 
-  //   } catch {
-  //     return;
-  //   }
-    
-  //   if (!input.trim()) return;
-
-  //   const userMessage = { role: 'user', content: input };
-  //   const tempAssistantMessage = { role: 'assistant', content: '__loading__' };
-
-  //   setMessages((prev) => [...prev, userMessage, tempAssistantMessage]);
-  //   setInput('');
-  //   setIsAwaitingResponse(true);
-
-  //   if (!currentAgent || !currentConversationId) {
-  //     setMessages((prev) => [
-  //       ...prev,
-  //       { role: 'assistant', content: 'Please select an agent and a conversation.' },
-  //     ]);
-  //     return;
-  //   }
-
-  //   try {
-  //     await sendMessageToConversation(currentConversationId, input);
-
-  //     const updatedMessages = await fetchMessagesByConversation(currentConversationId);
-  //     setMessages(updatedMessages);
-  //   } catch (error) {
-  //     console.error('Error sending message:', error.message);
-  //     setMessages((prev) => [
-  //       ...prev.slice(0, -1),
-  //       { role: 'assistant', content: 'Error sending message. Please try again later.' },
-  //     ]);
-  //   } finally {
-  //     setIsAwaitingResponse(false);
-  //   }
-  // };
-
   const handleSend = async (e) => {
     e.preventDefault();
+    if (isAwaitingResponse) return;
     try {
       await validateSession();
     } catch {
@@ -187,11 +149,22 @@ export default function ChatUI() {
           onDone: async () => {
             setIsAwaitingResponse(false);
             setAbortCtrl(null);
-            // const updatedMsgs = await fetchMessagesByConversation(currentConversationId);
-            // setMessages(updatedMsgs);
+            abortedByUserRef.current = false;
           },
           onError: (err) => {
-            console.error('Stream error:', err);
+
+            const isAbort =
+              abortedByUserRef.current ||
+              err?.name === 'AbortError' ||
+              /aborted|abort/i.test(err?.message || '');
+
+            if (isAbort) {
+              setIsAwaitingResponse(false);
+              setAbortCtrl(null);
+              abortedByUserRef.current = false;
+              return; 
+            }
+            
             setIsAwaitingResponse(false);
             setAbortCtrl(null);
             setMessages(prev => {
@@ -213,7 +186,10 @@ export default function ChatUI() {
   };
 
   const handleStop = () => {
-    if (abortCtrl) abortCtrl.abort();
+  if (abortCtrl) {
+    abortedByUserRef.current = true;
+    try { abortCtrl.abort(); } catch {}
+    }
     setIsAwaitingResponse(false);
     setAbortCtrl(null);
   };
@@ -528,14 +504,21 @@ export default function ChatUI() {
                 <div ref={bottomRef} />
               </div>
               <div className='flex flex-col'>
-                <form onSubmit={handleSend} className="border rounded-full bg-white flex items-center gap-2 m-4 mx-10 p-2">
-                    <input
+                <form onSubmit={handleSend} 
+                className={`border rounded-full bg-white flex items-center gap-2 m-4 mx-10 p-2`}
+                onKeyDown={(e) => {
+                    if (isAwaitingResponse && (e.key === 'Enter' || e.code === 'Enter')) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }
+                  }}>
+                  <input
                     type="text"
                     className={`flex-1 rounded-xl focus:outline-none focus:ring-none bg-white p-2 ${!currentAgent || !currentConversationId ? 'bg-gray-100 cursor-not-allowed' : 'bg-white text-black'}`}
                     placeholder={t('message')}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    disabled={!currentAgent || !currentConversationId}
+                    disabled={!currentAgent || !currentConversationId || isAwaitingResponse}
                     onKeyDown={(e) => {
                       if (e.code === 'Space' || e.key === ' ') {
                         e.stopPropagation();
