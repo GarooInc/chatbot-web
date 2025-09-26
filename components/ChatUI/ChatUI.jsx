@@ -32,8 +32,6 @@ export default function ChatUI() {
     const [currentConversationId, setCurrentConversationId] = useState(null);
     const [showToday, setShowToday] = useState(true);
     const [showPrevious, setShowPrevious] = useState(false);
-    const [showAgents, setShowAgents] = useState(false);
-    const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
     const [isLoadingAgents, setIsLoadingAgents] = useState(false);
     const [username, setUsername] = useState('');
@@ -43,12 +41,14 @@ export default function ChatUI() {
     const [showConversations, setShowConversations] = useState(true);
     const abortedByUserRef = useRef(false);
 
-
+    const [showTools, setShowTools] = useState(true);
+    const [currentTool, setCurrentTool] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, currentTool]);
 
 
   const validateSession = async () => {
@@ -129,6 +129,11 @@ export default function ChatUI() {
     const controller = new AbortController();
     setAbortCtrl(controller);
 
+    setCurrentTool(null);
+    setShowTools(false);
+    setIsLoading(true);
+
+
     try {
       await streamMessageToConversation(
         currentConversationId,
@@ -136,19 +141,43 @@ export default function ChatUI() {
         {
           signal: controller.signal,
           onToken: (chunk) => {
-            setMessages(prev => {
-              if (prev.length === 0) return prev;
-              const updated = [...prev];
-              const lastIdx = updated.length - 1;
-              const last = updated[lastIdx];
-              if (!last || last.role !== 'assistant') return prev;
-              updated[lastIdx] = { ...last, content: last.content + chunk };
-              return updated;
-            });
+            const isObj = typeof chunk === 'object' && chunk !== null && 'event' in chunk;
+            const event = isObj ? chunk.event : 'answer';
+            const data  = isObj ? chunk.data  : String(chunk);
+
+            event? setIsLoading(false) : null;
+
+            if (event === 'tool') {
+              setShowTools(true);
+              setCurrentTool(data);
+              return;
+            }
+
+            if (event === 'answer_start') {
+              setShowTools(false);
+              setCurrentTool(null);
+              return;
+            }
+
+            if (event === 'answer') {
+              setShowTools(false);
+              setCurrentTool(null);
+              setMessages(prev => {
+                if (prev.length === 0) return prev;
+                const updated = [...prev];
+                const lastIdx = updated.length - 1;
+                const last = updated[lastIdx];
+                if (!last || last.role !== 'assistant') return prev;
+                updated[lastIdx] = { ...last, content: last.content + data };
+                return updated;
+              });
+              return;
+            }
           },
           onDone: async () => {
             setIsAwaitingResponse(false);
             setAbortCtrl(null);
+            setCurrentTool(null);
             abortedByUserRef.current = false;
           },
           onError: (err) => {
@@ -227,7 +256,6 @@ export default function ChatUI() {
     const handleConversationSelect = async (conversation) => {
       setCurrentConversationId(conversation.conversation_id);
       setMessages([]);
-      setIsLoadingMessages(true);
 
       try {
         const messagesData = await fetchMessagesByConversation(conversation.conversation_id);
@@ -237,9 +265,7 @@ export default function ChatUI() {
         setMessages([
           { role: 'assistant', content: 'Error fetching messages. Please try again later.' },
         ]);
-      } finally {
-        setIsLoadingMessages(false);
-      }
+      } 
     };
 
     const handleNewConversation = async () => {
@@ -478,7 +504,7 @@ export default function ChatUI() {
                   )
                 }
               </div>
-              <div className="flex-1 overflow-y-scroll space-y-2 px-10 py-4 custom-scrollbar">
+              <div className="flex-1 overflow-y-scroll space-y-2 px-10 py-4 custom-scrollbar relative">
                 {
                   !currentAgent && !currentConversationId && (
                     <div className="flex flex-col gap-2 justify-center items-center h-full">
@@ -492,14 +518,18 @@ export default function ChatUI() {
                   )
                 }
                 {messages.map((msg, idx) =>
-                  msg.content === '__loading__' ? (
-                    <div key={idx} className="space-y-2">
-                      <div className="skeleton bg-gray-200 h-4 w-full py-2"></div>
-                      <div className="skeleton bg-gray-200 h-4 w-3/4"></div>
-                    </div>
-                  ) : (
                     <ChatMessage key={idx} role={msg.role} content={msg.content} />
-                  )
+                )}
+
+                {isLoading && (
+                  <div className="skeleton h-4 w-full bg-white"></div>
+                )}
+
+                {showTools && currentTool && (
+                      <ChatMessage
+                      role="assistant"
+                      content={`Usando: ${currentTool}`}
+                      />
                 )}
                 <div ref={bottomRef} />
               </div>
