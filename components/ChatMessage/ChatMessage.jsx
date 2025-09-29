@@ -21,7 +21,7 @@ export default function ChatMessage({ role, content }) {
             components={{
               seccion: Seccion,
               p({ node, children, ...props }) {
-                return <div {...props}>{children}</div>;
+                return <p {...props} style={{ whiteSpace: 'pre-wrap' }}>{children}</p>;
               },
               img({ src, alt }) {
                 if (!src) return null;
@@ -47,7 +47,7 @@ export default function ChatMessage({ role, content }) {
               },
             }}
           >
-            {content}
+            {content.replace(/\\n/g, '\n')}
           </ReactMarkdown>
         </div>
       </div>
