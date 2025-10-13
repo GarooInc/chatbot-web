@@ -177,6 +177,14 @@ export default function ChatUI() {
             setAbortCtrl(null);
             setCurrentTool(null);
             abortedByUserRef.current = false;
+            try {
+              if (currentConversationId) {
+                const messagesData = await fetchMessagesByConversation(currentConversationId);
+                setMessages(messagesData);
+              }
+            } catch (err) {
+              console.error('Error reloading messages after streaming:', err?.message || err);
+            }
           },
           onError: (err) => {
 
@@ -301,6 +309,17 @@ export default function ChatUI() {
           { role: 'assistant', content: 'Error creating new conversation. Please try again later.' },
         ]);
       }
+    }
+  };
+
+  // Helper to reload messages for the current conversation
+  const reloadMessages = async () => {
+    if (!currentConversationId) return;
+    try {
+      const messagesData = await fetchMessagesByConversation(currentConversationId);
+      setMessages(messagesData);
+    } catch (err) {
+      console.error('Error reloading messages:', err?.message || err);
     }
   };
 
@@ -531,6 +550,7 @@ export default function ChatUI() {
                       id_msg={msg.message_id}
                       conversationId={currentConversationId}
                       rating={msg.rating}
+                      onRated={reloadMessages}
                     />
                   ))}
 

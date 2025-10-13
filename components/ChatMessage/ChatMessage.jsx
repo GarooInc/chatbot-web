@@ -1,4 +1,5 @@
-import React from 'react';
+"use client"
+import React, { useState } from 'react'
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -6,27 +7,47 @@ import rehypeRaw from 'rehype-raw';
 import { PiThumbsUpDuotone } from "react-icons/pi";
 import { PiThumbsDownDuotone } from "react-icons/pi";
 import { rateMessage } from '@/lib/api';
+import Toast from '../Toast/Toast';
+import { useRouter } from 'next/navigation';
 
 
-const ChatMessage = ({ role, content, id_msg, conversationId, rating }) => {
+const ChatMessage = ({ role, content, id_msg, conversationId, rating, onRated }) => {
   const isUser = role === 'user';
+  const router = useRouter();
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('success');
   
   function Seccion({ children, ...props }) {
     return <section {...props}>{children}</section>;
   }
 
-  const handleRating = async (rating) => {
+  const handleRating = async (score) => {
     try {
-      await rateMessage(conversationId, id_msg, rating);
-      console.log(`Mensaje ${id_msg} calificado con ${rating}`);
+      await rateMessage(conversationId, id_msg, score);
+      setShowToast(true);
+      setToastMessage("Gracias por tu calificación.");
+      setToastType('success');
+      setTimeout(() => setShowToast(false), 3000);
+      if (onRated && typeof onRated === 'function') {
+        onRated();
+      } else {
+        router.refresh();
+      }
+      console.log('Rating submitted successfully');
     } catch (error) {
       console.error('Error al calificar el mensaje:', error);
+      setToastMessage('Error al calificar el mensaje. Por favor, inténtalo de nuevo.');
+      setToastType('error');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
     }
   };
 
 
   return (
     <div className={`w-full flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 relative`}>
+      {showToast && <Toast message={toastMessage} type={toastType} />}
       <div className={`w-full md:w-auto md:max-w-2xl rounded-2xl px-4 py-3 overflow-x-scroll ${isUser ? 'bg-gray-100 text-black' : 'bg-white text-black'}`}>
         <div className="prose max-w-none mdown">
           <ReactMarkdown
@@ -65,7 +86,7 @@ const ChatMessage = ({ role, content, id_msg, conversationId, rating }) => {
           </ReactMarkdown>
         </div>
       </div>
-      {!isUser && rating.status == 0 && (
+  {!isUser && id_msg && (rating?.status ?? 0) === 0 && (
         <div className="absolute bottom-0 left-0 transform translate-x-1/2 translate-y-1/2 flex">
           <PiThumbsUpDuotone 
           onClick={() => handleRating(1)}
