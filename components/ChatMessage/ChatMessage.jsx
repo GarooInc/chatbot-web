@@ -3,16 +3,30 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeRaw from 'rehype-raw';
+import { PiThumbsUpDuotone } from "react-icons/pi";
+import { PiThumbsDownDuotone } from "react-icons/pi";
+import { rateMessage } from '@/lib/api';
 
-export default function ChatMessage({ role, content }) {
+
+const ChatMessage = ({ role, content, id_msg, conversationId, rating }) => {
   const isUser = role === 'user';
   
   function Seccion({ children, ...props }) {
     return <section {...props}>{children}</section>;
   }
 
+  const handleRating = async (rating) => {
+    try {
+      await rateMessage(conversationId, id_msg, rating);
+      console.log(`Mensaje ${id_msg} calificado con ${rating}`);
+    } catch (error) {
+      console.error('Error al calificar el mensaje:', error);
+    }
+  };
+
+
   return (
-    <div className={`w-full flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
+    <div className={`w-full flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 relative`}>
       <div className={`w-full md:w-auto md:max-w-2xl rounded-2xl px-4 py-3 overflow-x-scroll ${isUser ? 'bg-gray-100 text-black' : 'bg-white text-black'}`}>
         <div className="prose max-w-none mdown">
           <ReactMarkdown
@@ -51,6 +65,16 @@ export default function ChatMessage({ role, content }) {
           </ReactMarkdown>
         </div>
       </div>
+      {!isUser && rating.status == 0 && (
+        <div className="absolute bottom-0 left-0 transform translate-x-1/2 translate-y-1/2 flex">
+          <PiThumbsUpDuotone 
+          onClick={() => handleRating(1)}
+          className="w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600" />
+          <PiThumbsDownDuotone onClick={() => handleRating(-1)} className="w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600 ml-2" />
+        </div>
+      )}
     </div>
   );
 }
+
+export default ChatMessage;

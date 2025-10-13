@@ -19,9 +19,7 @@ import { checkSession, signOut } from '@/lib/auth';
 
 
 export default function ChatUI() {
-    const [messages, setMessages] = useState([
-        { role: 'assistant', content: '' },
-    ]);
+    const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const navigate = useRouter();
     const { t } = useTranslation();
@@ -236,15 +234,14 @@ export default function ChatUI() {
       return;
     }
     setCurrentAgent(agent);
-    console.log('Selected agent:', agent);
     try {
       const conversationsData = await fetchConversationsByAgent(agent.agent_id);
       setConversationsToday(conversationsData.today || []);
       setConversationsPrevious(conversationsData.previous || []);
       setMessages([]);
-      setMessages([
-        { role: 'assistant', content: `Select or create a conversation with ${agent.agent_name} to start chatting.` },
-      ]);
+      // setMessages([
+      //   { role: 'assistant', content: `Select or create a conversation with ${agent.agent_name} to start chatting.` },
+      // ]);
     } catch (error) {
       console.error('Error fetching conversations:', error.message);
       setMessages([
@@ -506,20 +503,36 @@ export default function ChatUI() {
               </div>
               <div className="flex-1 overflow-y-scroll space-y-2 px-10 py-4 custom-scrollbar relative">
                 {
-                  !currentAgent && !currentConversationId && (
+                  !currentAgent && (
                     <div className="flex flex-col gap-2 justify-center items-center h-full">
                       <span className="text-black text-xl">
                         What do you need today, {username}?
                       </span>
                       <span className="text-gray-500 text-sm">
-                        Select an agent and a conversation to start chatting.
+                        Select an agent to start chatting.
                       </span>
                     </div>
                   )
                 }
-                {messages.map((msg, idx) =>
-                    <ChatMessage key={idx} role={msg.role} content={msg.content} />
-                )}
+                {currentAgent && !currentConversationId && (
+                    <div className="flex flex-col gap-2 justify-center items-center h-full">
+                      <span className="text-gray-500 text-sm">
+                        Select or create a conversation to start chatting.
+                      </span>
+                    </div>
+                  )
+                }
+                {
+                  messages.length > 0 && messages.map((msg, index) => (
+                    <ChatMessage
+                      key={index}
+                      role={msg.role}
+                      content={msg.content}
+                      id_msg={msg.message_id}
+                      conversationId={currentConversationId}
+                      rating={msg.rating}
+                    />
+                  ))}
 
                 {isLoading && (
                   <div className="skeleton h-4 w-full bg-white"></div>
