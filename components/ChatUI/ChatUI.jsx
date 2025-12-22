@@ -2,10 +2,8 @@
 import React, { useRef } from 'react';
 import ChatMessage from '../ChatMessage/ChatMessage';
 import { IoIosAddCircle } from "react-icons/io";
-import { IoExitOutline } from "react-icons/io5";
 import { IoIosArrowDown } from "react-icons/io";
 import { FaStop } from "react-icons/fa6";
-import { BsGear } from "react-icons/bs";
 import { TbLayoutSidebarLeftCollapseFilled } from "react-icons/tb";
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -14,8 +12,6 @@ import { fetchAgents, fetchConversationsByAgent, fetchMessagesByConversation, se
 import MenuLeft from '../MenuLeft/MenuLeft';
 import { FaArrowUp } from "react-icons/fa";
 import { checkSession, signOut } from '@/lib/auth';
-
-
 
 
 export default function ChatUI() {
@@ -241,15 +237,13 @@ export default function ChatUI() {
     } catch {
       return;
     }
+    localStorage.setItem('selectedAgentId', agent.agent_id);
     setCurrentAgent(agent);
     try {
       const conversationsData = await fetchConversationsByAgent(agent.agent_id);
       setConversationsToday(conversationsData.today || []);
       setConversationsPrevious(conversationsData.previous || []);
       setMessages([]);
-      // setMessages([
-      //   { role: 'assistant', content: `Select or create a conversation with ${agent.agent_name} to start chatting.` },
-      // ]);
     } catch (error) {
       console.error('Error fetching conversations:', error.message);
       setMessages([
@@ -323,16 +317,11 @@ export default function ChatUI() {
     }
   };
 
-  const handleLogout = () => {
-    signOut();
-    navigate.push('/');
-  };
-
 
   return (
     <div className='flex w-full bg-[#F8FAFC] md:flex-row flex-col h-full max-h-screen'>
         <div className='flex md:flex-col bg-white justify-between p-4'>
-            <div className='flex md:flex-col items-center'>
+            <div className='flex md:flex-col items-center h-screen'>
               <button
                 className={`mb-4 focus:outline-none ${showConversations ? '' : 'cursor-pointer'}`}
                 onClick={
@@ -346,27 +335,6 @@ export default function ChatUI() {
               /> 
               </button>
               <MenuLeft />
-            </div>
-            <div className='flex flex-col items-center gap-6'>
-                <BsGear className='w-10 h-10 text-[#475569] cursor-pointer hover:bg-[#F8FAFC] hover:text-gray-700 rounded-full p-2' />
-                <button 
-                    className='cursor-pointer text-[#475569] hover:bg-[#F8FAFC] hover:text-gray-700 rounded-full p-2'
-                        onClick={
-                            handleLogout
-                        }
-                    >
-                        <IoExitOutline className='w-6 h-6' />
-                </button>
-                <button 
-                className='relative cursor-pointer'
-                onClick={showMenuLeft ? () => setShowMenuLeft(false) : () => setShowMenuLeft(true)}
-                >
-                <img 
-                  src="/assets/images/chat/avatar.png"
-                  alt="Avatar"
-                  className="w-10 h-10 rounded-full mb-4"
-                />
-                </button>
             </div>
         </div>
         <div className={`flex flex-col md:w-1/3 min-h-0 ${showConversations ? 'block' : 'hidden'} `}>
