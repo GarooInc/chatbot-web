@@ -85,12 +85,14 @@ const ChatMessage = ({ role, content, id_msg, conversationId, rating, onRated })
           </ReactMarkdown>
         </div>
       </div>
-  {!isUser && id_msg && (rating?.status ?? 0) === 0 && (
-        <div className="absolute bottom-0 left-0 transform translate-x-1/2 translate-y-1/2 flex">
+  {!isUser && id_msg && (
+        <div className="absolute bottom-0 left-0 transform translate-x-1/2 translate-y-1/2 flex gap-2">
           <PiThumbsUpDuotone 
           onClick={() => handleRating(1)}
-          className="w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600" />
-          <PiThumbsDownDuotone onClick={() => handleRating(-1)} className="w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600 ml-2" />
+          className={`w-4 h-4 cursor-pointer ${rating?.status === 1 ? 'text-green-600' : 'text-gray-400 hover:text-gray-600'}`} />
+          <PiThumbsDownDuotone 
+          onClick={() => handleRating(-1)} 
+          className={`w-4 h-4 cursor-pointer ${rating?.status === -1 ? 'text-red-600' : 'text-gray-400 hover:text-gray-600'}`} />
         </div>
       )}
     </div>
