@@ -79,3 +79,11 @@ body {
 .mdown li {
   @apply list-disc mb-4;
 }
+
+.messages ul {
+  @apply pt-2 pl-8 mb-4;
+}
+
+.messages li {
+  @apply m-2;
+}

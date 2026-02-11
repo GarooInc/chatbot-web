@@ -46,7 +46,7 @@ const ChatMessage = ({ role, content, id_msg, conversationId, rating, onRated })
 
 
   return (
-    <div className={`w-full flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 relative`}>
+    <div className={`w-full flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 relative messages`}>
       {showToast && <Toast message={toastMessage} type={toastType} />}
       <div className={`w-full md:w-auto md:max-w-2xl rounded-2xl px-4 py-3 overflow-x-scroll ${isUser ? 'bg-gray-100 text-black' : 'bg-white text-black'}`}>
         <div className="prose max-w-none mdown">
@@ -64,13 +64,12 @@ const ChatMessage = ({ role, content, id_msg, conversationId, rating, onRated })
               },
               code({ node, inline, className, children, ...props }) {
                 return inline ? (
-                  <code className="bg-gray-100 rounded px-1">{children}</code>
+                  <code>{children}</code>
                 ) : (
-                  <pre className="overflow-x-auto rounded-lg bg-gray-900 text-white p-4 my-2">
-                    <code className={`text-sm ${className || ''}`} {...props}>
+                    <code className={`text-sm text-white p-1 rounded overflow-x-auto
+                     ${className || ''}`} {...props}>
                       {children}
                     </code>
-                  </pre>
                 );
               },
               table({ children }) {
@@ -86,12 +85,14 @@ const ChatMessage = ({ role, content, id_msg, conversationId, rating, onRated })
           </ReactMarkdown>
         </div>
       </div>
-  {!isUser && id_msg && (rating?.status ?? 0) === 0 && (
-        <div className="absolute bottom-0 left-0 transform translate-x-1/2 translate-y-1/2 flex">
+  {!isUser && id_msg && (
+        <div className="absolute bottom-0 left-0 transform translate-x-1/2 translate-y-1/2 flex gap-2">
           <PiThumbsUpDuotone 
           onClick={() => handleRating(1)}
-          className="w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600" />
-          <PiThumbsDownDuotone onClick={() => handleRating(-1)} className="w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-600 ml-2" />
+          className={`w-4 h-4 cursor-pointer ${rating?.status === 1 ? 'text-green-600' : 'text-gray-400 hover:text-gray-600'}`} />
+          <PiThumbsDownDuotone 
+          onClick={() => handleRating(-1)} 
+          className={`w-4 h-4 cursor-pointer ${rating?.status === -1 ? 'text-red-600' : 'text-gray-400 hover:text-gray-600'}`} />
         </div>
       )}
     </div>

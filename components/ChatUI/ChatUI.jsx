@@ -65,6 +65,20 @@ export default function ChatUI() {
         setIsLoadingAgents(true);
         try {
             setAgents(agentsData);
+            
+            if (typeof window !== 'undefined') {
+              const lastAgentId = sessionStorage.getItem('lastUsedAgentId');
+              if (lastAgentId && agentsData.length > 0) {
+                const lastAgent = agentsData.find(a => a.agent_id === lastAgentId);
+                if (lastAgent) {
+                  await handleAgentChange(lastAgent);
+                  setTimeout(async () => {
+                    await handleNewConversation();
+                  }, 500);
+                }
+              }
+            }
+            
             setTimeout(() => {
             setIsLoadingAgents(false);
           }, 4000);
@@ -223,6 +237,7 @@ export default function ChatUI() {
     }
     setIsAwaitingResponse(false);
     setAbortCtrl(null);
+    setIsLoading(false);
   };
 
   const handleShowConversations = () => {
@@ -237,8 +252,15 @@ export default function ChatUI() {
     } catch {
       return;
     }
+    
+    // Saving selected agent in sessionStorage and localStorage
     localStorage.setItem('selectedAgentId', agent.agent_id);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('lastUsedAgentId', agent.agent_id);
+    }
+    
     setCurrentAgent(agent);
+    setCurrentConversationId(null); // Clear conversation when changing agent
     try {
       const conversationsData = await fetchConversationsByAgent(agent.agent_id);
       setConversationsToday(conversationsData.today || []);
@@ -273,7 +295,7 @@ export default function ChatUI() {
     } catch {
       return;
     }
-    const defaultName = `chat-${conversationsPrevious.length + conversationsToday.length + 1}`;
+    const defaultName = `Nuevo Chat`;
     if (defaultName && currentAgent) {
       try {
         await createNewConversation(currentAgent.agent_id, defaultName);
