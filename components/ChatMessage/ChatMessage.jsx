@@ -46,7 +46,7 @@ const ChatMessage = ({ role, content, id_msg, conversationId, rating, onRated })
 
 
   return (
-    <div className={`w-full flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 relative`}>
+    <div className={`w-full flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 relative messages`}>
       {showToast && <Toast message={toastMessage} type={toastType} />}
       <div className={`w-full md:w-auto md:max-w-2xl rounded-2xl px-4 py-3 overflow-x-scroll ${isUser ? 'bg-gray-100 text-black' : 'bg-white text-black'}`}>
         <div className="prose max-w-none mdown">
@@ -64,13 +64,12 @@ const ChatMessage = ({ role, content, id_msg, conversationId, rating, onRated })
               },
               code({ node, inline, className, children, ...props }) {
                 return inline ? (
-                  <code className="bg-gray-100 rounded px-1">{children}</code>
+                  <code>{children}</code>
                 ) : (
-                  <pre className="overflow-x-auto rounded-lg bg-gray-900 text-white p-4 my-2">
-                    <code className={`text-sm ${className || ''}`} {...props}>
+                    <code className={`text-sm text-white p-1 rounded overflow-x-auto
+                     ${className || ''}`} {...props}>
                       {children}
                     </code>
-                  </pre>
                 );
               },
               table({ children }) {
