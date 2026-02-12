@@ -29,7 +29,6 @@ export default function ChatUI() {
     const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
     const [isLoadingAgents, setIsLoadingAgents] = useState(false);
     const [username, setUsername] = useState('');
-    const [showMenuLeft, setShowMenuLeft] = useState(false);
     const bottomRef = useRef(null);
     const [abortCtrl, setAbortCtrl] = useState(null);
     const [showConversations, setShowConversations] = useState(true);
@@ -341,9 +340,9 @@ export default function ChatUI() {
 
 
   return (
-    <div className='flex w-full bg-[#F8FAFC] md:flex-row flex-col h-full max-h-screen'>
+    <div className='flex w-full bg-[#F8FAFC] flex-row h-screen overflow-hidden'>
         <div className='flex md:flex-col bg-white justify-between p-4'>
-            <div className='flex md:flex-col items-center h-screen'>
+            <div className='flex flex-col items-center md:h-screen'>
               <button
                 className={`mb-4 focus:outline-none ${showConversations ? '' : 'cursor-pointer'}`}
                 onClick={
@@ -353,255 +352,261 @@ export default function ChatUI() {
                 <img
                   src="/assets/images/logos/logo_v2.png"
                   alt="Logo"
-                  className="md:w-8 w-4 h-4 md:h-auto mb-4 mx-auto md:mx-0"
+                  className="w-8 h-8 md:h-auto mb-4 mx-auto md:mx-0"
               /> 
               </button>
               <MenuLeft />
             </div>
         </div>
-        <div className={`flex flex-col md:w-1/3 min-h-0 ${showConversations ? 'block' : 'hidden'} `}>
-              <div className='w-full border-b border-gray-300 flex justify-between p-4 items-center md:h-14'>
-                <img
-                    src="/assets/images/logos/logo_v1.png"
-                    alt="Logo"  
-                    className="w-20 h-auto mx-auto md:mx-0"
-                  /> 
-                  <button
-                    className={`h-8 w-8 rounded-full transition-colors duration-200 text-[#CC1D1A] ${!currentAgent ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:text-red-600 '}`}
-                    onClick={handleNewConversation}
-                  >
-                    <IoIosAddCircle className='w-full h-full' />
-                  </button>
-              </div>
-            <div className='flex flex-col bg-[#F8FAFC] relative gap-4 h-full min-h-0 flex-1'>
-                <div className="flex flex-col w-full flex-1 min-h-0">
-                {
-                    isLoadingAgents ? (
-                        <div className="flex justify-center items-center h-full">
-                            <span className="loading loading-ring loading-xl text-black"></span>
-                        </div>
-                    ) :(
-                      <div className="w-full flex flex-col flex-1 overflow-y-auto">
-                        {agents.length > 0 && (
-                        <div className='flex justify-between'>
-                            <h4 className="text-md font-light text-gray-400 mb-2 capitalize py-2 px-4">{t('agents')}</h4>
-                          <button
-                            className="h-8 w-8 rounded-full transition-colors duration-200 text-[#CC1D1A] cursor-pointer"
-                            onClick={handleShowConversations}
-                          >
-                            <TbLayoutSidebarLeftCollapseFilled className='w-6 h-6' />
-                        </button>
-                        </div>
-                        )}
-                        <ul className="space-y-2 w-full">
-                        {agents.map((agent) => (
-                          <li
-                            key={agent.agent_id}
-                            onClick={() => handleAgentChange(agent)}
-                            className={`px-4 py-2 text-start cursor-pointer transition-colors duration-200 ${
-                              agent === currentAgent
-                                ? 'bg-gray-200 text-black'
-                                : 'bg-white text-black hover:bg-gray-200 hover:border-none'
-                            }`}
-                          >
-                            {agent.agent_name}
-                          </li>
-                        ))}
-                      </ul>
-                      {/* Today */}
-                      {conversationsToday.length > 0 && (
-                        <div className="w-full overflow-y-scroll min-h-20">
-                          <div className='flex justify-between items-center px-4 py-2 text-gray-500 font-semibold w-full'>
-                            <div className='flex gap-2'>
-                              <span>Today</span>
-                            </div>
-                            <button
-                              onClick={() => setShowToday(prev => !prev)}
-                              className="flex items-center  gap-4 text-gray-500 font-semibold cursor-pointer"
-                            >
-                              <span className='font-light'>{conversationsToday.length}</span>
-                              <IoIosArrowDown className={`w-4 h-4 transition-transform duration-200 ${showToday ? 'transform rotate-180' : ''}`} />
-                            </button>
-                          </div>
-                          {showToday && (
-                            <ul className="space-y-1">
-                              {conversationsToday.map((conv) => (
-                                <li
-                                  key={conv.conversation_id}
-                                  onClick={() => handleConversationSelect(conv)}
-                                  className={`px-4 py-2 cursor-pointer text-sm ${
-                                    conv.conversation_id === currentConversationId
-                                      ? 'bg-gray-200 text-black rounded'
-                                      : 'text-black hover:bg-gray-100 rounded'
-                                  }`}
-                                >
-                                  {conv.conversation_name}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      )}
 
-                      {/* Previous 7 Days */}
-                      {conversationsPrevious.length > 0 && (
-                        <div className="w-full mt-4">
-                          <div className='flex justify-between items-center px-4 py-2 text-gray-500 font-semibold w-full'>
-                            <div className='flex gap-2'>
-                              <span>Previous</span>
-                            </div>
-                            <button
-                              onClick={() => setShowPrevious(prev => !prev)}
-                              className="flex items-center gap-4 text-gray-500 font-semibold cursor-pointer"
-                            > 
-                              <span className='font-light'>{conversationsPrevious.length}</span>
-                              <IoIosArrowDown className={`w-4 h-4 transition-transform duration-200 ${showPrevious ? 'transform rotate-180' : ''}`} />
-                            </button>
-                          </div>
-                          {showPrevious && (
-                            <ul className="space-y-1">
-                              {conversationsPrevious.map((conv) => (
-                                <li
-                                  key={conv.conversation_id}
-                                  onClick={() => handleConversationSelect(conv)}
-                                  className={`px-4 py-2 cursor-pointer text-sm ${
-                                    conv.conversation_id === currentConversationId
-                                      ? 'bg-gray-200 text-black rounded'
-                                      : 'text-black hover:bg-gray-100 rounded'
-                                  }`}
-                                >
-                                  {conv.conversation_name}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      )}
-
-                    </div>
-                    )
-                }
+        <div className={`flex flex-col md:flex-row w-full h-full`}>
+          <div className={`flex flex-col md:w-1/3  ${showConversations ? 'block' : 'md:hidden'} md:h-full`}>
+                <div className='w-full border-b border-gray-300 flex justify-between p-4 items-center md:h-14'>
+                  <img
+                      src="/assets/images/logos/logo_v1.png"
+                      alt="Logo"  
+                      className="w-20 h-auto mx-auto md:mx-0"
+                    /> 
+                    <button
+                      className={`h-8 w-8 rounded-full transition-colors duration-200 text-[#CC1D1A] ${!currentAgent ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:text-red-600 '}`}
+                      onClick={handleNewConversation}
+                    >
+                      <IoIosAddCircle className='w-full h-full' />
+                    </button>
                 </div>
-            </div>
-        </div>
-        <div className={`flex flex-col h-screen ${showConversations ? 'md:w-2/3' : 'w-full'} flex-1 min-h-0`}>
-          <div className='flex flex-col bg-white h-full'>
-              <div className="flex items-center justify-start p-4 border-b border-gray-300 bg-white md:h-14">
-                {
-                  currentAgent && (
-                    <img
-                      src={currentAgent.business_logo_url || ''}
-                      alt={currentAgent.agent_name}
-                      className="w-40 mr-2"
-                    />
-                  )
-                }
-                {
-                  currentAgent && (
-                    <span className="text-gray-700 font-bold text-sm">
-                      - {currentConversationId
-                      ? (
-                          [...conversationsPrevious, ...conversationsToday].find(
-                            conv => conv.conversation_id === currentConversationId
-                          )?.conversation_name || 'New Conversation'
-                        )
-                      : " "}
-                    </span>
-                  )
-                }
+              <div className='flex flex-col bg-[#F8FAFC] relative gap-4 md:h-full md:min-h-0 flex-1'>
+                  <div className="flex flex-col w-full flex-1 md:min-h-0">
+                  {
+                      isLoadingAgents ? (
+                          <div className="flex justify-center items-center h-full">
+                              <span className="loading loading-ring loading-xl text-black"></span>
+                          </div>
+                      ) :(
+                        <div className="w-full flex flex-col flex-1 overflow-y-scroll">
+                          {agents.length > 0 && (
+                          <div className='flex justify-between items-center md:p-0 px-4'>
+                              <h4 className="text-md font-light text-gray-400 md:mb-2 capitalize py-2 px-4">{t('agents')}</h4>
+                            <button
+                              className="h-8 w-8 rounded-full transition-colors duration-200 text-[#CC1D1A] cursor-pointer md:rotate-0 rotate-90 flex justify-center"
+                              onClick={handleShowConversations}
+                            >
+                              <TbLayoutSidebarLeftCollapseFilled className='w-6 h-6' />
+                          </button>
+                          </div>
+                          )}
+
+                          <div className={`flex flex-col md:gap-4 gap-2 w-full md:h-full ${showConversations ? 'block' : 'md:block hidden'} `}>
+                            <ul className="space-y-2 w-full">
+                              {agents.map((agent) => (
+                                <li
+                                  key={agent.agent_id}
+                                  onClick={() => handleAgentChange(agent)}
+                                  className={`px-4 py-2 text-start cursor-pointer transition-colors duration-200 ${
+                                    agent === currentAgent
+                                      ? 'bg-gray-200 text-black'
+                                      : 'bg-white text-black hover:bg-gray-200 hover:border-none'
+                                  }`}
+                                >
+                                  {agent.agent_name}
+                                </li>
+                              ))}
+                            </ul>
+                            {/* Today */}
+                            {conversationsToday.length > 0 && (
+                              <div className={`w-full overflow-y-scroll`}>
+                                <div className='flex justify-between items-center px-4 py-2 text-gray-500 font-semibold w-full'>
+                                  <div className='flex gap-2'>
+                                    <span>Today</span>
+                                  </div>
+                                  <button
+                                    onClick={() => setShowToday(prev => !prev)}
+                                    className="flex items-center  gap-4 text-gray-500 font-semibold cursor-pointer"
+                                  >
+                                    <span className='font-light'>{conversationsToday.length}</span>
+                                    <IoIosArrowDown className={`w-4 h-4 transition-transform duration-200 ${showToday ? 'transform rotate-180' : ''}`} />
+                                  </button>
+                                </div>
+                                {showToday && (
+                                  <ul className="space-y-1">
+                                    {conversationsToday.map((conv) => (
+                                      <li
+                                        key={conv.conversation_id}
+                                        onClick={() => handleConversationSelect(conv)}
+                                        className={`px-4 py-2 cursor-pointer text-sm ${
+                                          conv.conversation_id === currentConversationId
+                                            ? 'bg-gray-200 text-black rounded'
+                                            : 'text-black hover:bg-gray-100 rounded'
+                                        }`}
+                                      >
+                                        {conv.conversation_name}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Previous 7 Days */}
+                            {conversationsPrevious.length > 0 && (
+                              <div className="w-full mt-4">
+                                <div className='flex justify-between items-center px-4 py-2 text-gray-500 font-semibold w-full'>
+                                  <div className='flex gap-2'>
+                                    <span>Previous</span>
+                                  </div>
+                                  <button
+                                    onClick={() => setShowPrevious(prev => !prev)}
+                                    className="flex items-center gap-4 text-gray-500 font-semibold cursor-pointer"
+                                  > 
+                                    <span className='font-light'>{conversationsPrevious.length}</span>
+                                    <IoIosArrowDown className={`w-4 h-4 transition-transform duration-200 ${showPrevious ? 'transform rotate-180' : ''}`} />
+                                  </button>
+                                </div>
+                                {showPrevious && (
+                                  <ul className="space-y-1">
+                                    {conversationsPrevious.map((conv) => (
+                                      <li
+                                        key={conv.conversation_id}
+                                        onClick={() => handleConversationSelect(conv)}
+                                        className={`px-4 py-2 cursor-pointer text-sm ${
+                                          conv.conversation_id === currentConversationId
+                                            ? 'bg-gray-200 text-black rounded'
+                                            : 'text-black hover:bg-gray-100 rounded'
+                                        }`}
+                                      >
+                                        {conv.conversation_name}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                      </div>
+                      )}
+                  </div>
               </div>
-              <div className="flex-1 overflow-y-scroll space-y-2 px-10 py-4 custom-scrollbar relative">
-                {
-                  !currentAgent && (
-                    <div className="flex flex-col gap-2 justify-center items-center h-full">
-                      <span className="text-black text-xl">
-                        What do you need today, {username}?
-                      </span>
-                      <span className="text-gray-500 text-sm">
-                        Select an agent to start chatting.
-                      </span>
-                    </div>
-                  )
-                }
-                {currentAgent && !currentConversationId && (
-                    <div className="flex flex-col gap-2 justify-center items-center h-full">
-                      <span className="text-gray-500 text-sm">
-                        Select or create a conversation to start chatting.
-                      </span>
-                    </div>
-                  )
-                }
-                {
-                  messages.length > 0 && messages.map((msg, index) => (
-                    <ChatMessage
-                      key={index}
-                      role={msg.role}
-                      content={msg.content}
-                      id_msg={msg.message_id}
-                      conversationId={currentConversationId}
-                      rating={msg.rating}
-                      onRated={reloadMessages}
-                    />
-                  ))}
+          </div>
 
-                {isLoading && (
-                  <div className="skeleton h-4 w-full bg-white"></div>
-                )}
-
-                {showTools && currentTool && (
-                      <ChatMessage
-                      role="assistant"
-                      content={`Usando: ${currentTool}`}
+          <div className={`flex flex-col h-screen ${showConversations ? 'md:w-2/3' : 'w-full'} flex-1 overflow-hidden`}>
+            <div className='flex flex-col bg-white h-full'>
+                <div className="flex items-center justify-start p-4 border-b border-gray-300 bg-white md:h-14">
+                  {
+                    currentAgent && (
+                      <img
+                        src={currentAgent.business_logo_url || ''}
+                        alt={currentAgent.agent_name}
+                        className="w-40 mr-2"
                       />
-                )}
-                <div ref={bottomRef} />
-              </div>
-              <div className='flex flex-col'>
-                <form onSubmit={handleSend} 
-                className={`border rounded-full bg-white flex items-center gap-2 m-4 mx-10 p-2`}
-                onKeyDown={(e) => {
-                    if (isAwaitingResponse && (e.key === 'Enter' || e.code === 'Enter')) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }
-                  }}>
-                  <input
-                    type="text"
-                    className={`flex-1 rounded-xl focus:outline-none focus:ring-none bg-white p-2 ${!currentAgent || !currentConversationId ? 'bg-gray-100 cursor-not-allowed' : 'bg-white text-black'}`}
-                    placeholder={t('message')}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    disabled={!currentAgent || !currentConversationId || isAwaitingResponse}
-                    onKeyDown={(e) => {
-                      if (e.code === 'Space' || e.key === ' ') {
+                    )
+                  }
+                  {
+                    currentAgent && (
+                      <span className="text-gray-700 font-bold text-sm">
+                        - {currentConversationId
+                        ? (
+                            [...conversationsPrevious, ...conversationsToday].find(
+                              conv => conv.conversation_id === currentConversationId
+                            )?.conversation_name || 'New Conversation'
+                          )
+                        : " "}
+                      </span>
+                    )
+                  }
+                </div>
+                <div className="flex-1 overflow-y-auto space-y-2 p-2 md:p-4 md:px-10 md:py-4 custom-scrollbar relative">
+                  {
+                    !currentAgent && (
+                      <div className="flex flex-col gap-2 justify-center items-center h-full">
+                        <span className="text-black text-xl">
+                          What do you need today, {username}?
+                        </span>
+                        <span className="text-gray-500 text-sm">
+                          Select an agent to start chatting.
+                        </span>
+                      </div>
+                    )
+                  }
+                  {currentAgent && !currentConversationId && (
+                      <div className="flex flex-col gap-2 justify-center items-center h-full">
+                        <span className="text-gray-500 text-sm">
+                          Select or create a conversation to start chatting.
+                        </span>
+                      </div>
+                    )
+                  }
+                  {
+                    messages.length > 0 && messages.map((msg, index) => (
+                      <ChatMessage
+                        key={index}
+                        role={msg.role}
+                        content={msg.content}
+                        id_msg={msg.message_id}
+                        conversationId={currentConversationId}
+                        rating={msg.rating}
+                        onRated={reloadMessages}
+                      />
+                    ))}
+
+                  {isLoading && (
+                    <div className="skeleton h-4 w-full bg-white"></div>
+                  )}
+
+                  {showTools && currentTool && (
+                        <ChatMessage
+                        role="assistant"
+                        content={`Usando: ${currentTool}`}
+                        />
+                  )}
+                  <div ref={bottomRef} />
+                </div>
+                <div className='flex flex-col'>
+                  <form onSubmit={handleSend} 
+                  className={`border rounded-full bg-white flex items-center gap-2 m-4 mx-10 p-2`}
+                  onKeyDown={(e) => {
+                      if (isAwaitingResponse && (e.key === 'Enter' || e.code === 'Enter')) {
+                        e.preventDefault();
                         e.stopPropagation();
                       }
-                    }}
-                    />
-                    {!isAwaitingResponse ? (
-                      <button
-                        type="submit"
-                        disabled={!currentAgent || !currentConversationId}
-                        className={`bg-[#CC1D1A] hover:bg-red-600 text-white p-2 rounded-full ${!currentAgent || !currentConversationId ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      >
-                        <FaArrowUp className="w-4 h-4" />
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleStop}
-                        className=" p-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600"
-                      >
-                        <FaStop className="w-4 h-4 text-[#CC1D1A]" />
-                      </button>
-                    )}
-                </form>
-                <span className="text-gray-500 text-sm p-4 text-center">
-                    {t('chat_ui_footer')}
-                </span>
+                    }}>
+                    <input
+                      type="text"
+                      className={`flex-1 rounded-xl focus:outline-none focus:ring-none bg-white p-2 ${!currentAgent || !currentConversationId ? 'bg-gray-100 cursor-not-allowed' : 'bg-white text-black'}`}
+                      placeholder={t('message')}
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      disabled={!currentAgent || !currentConversationId || isAwaitingResponse}
+                      onKeyDown={(e) => {
+                        if (e.code === 'Space' || e.key === ' ') {
+                          e.stopPropagation();
+                        }
+                      }}
+                      />
+                      {!isAwaitingResponse ? (
+                        <button
+                          type="submit"
+                          disabled={!currentAgent || !currentConversationId}
+                          className={`bg-[#CC1D1A] hover:bg-red-600 text-white p-2 rounded-full ${!currentAgent || !currentConversationId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          <FaArrowUp className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleStop}
+                          className=" p-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600"
+                        >
+                          <FaStop className="w-4 h-4 text-[#CC1D1A]" />
+                        </button>
+                      )}
+                  </form>
+                  <span className="text-gray-500 text-sm p-4 text-center">
+                      {t('chat_ui_footer')}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
   );
 }

@@ -29,7 +29,7 @@ export default async function Login({ params }) {
                         <div className='w-full md:justify-start justify-center items-center flex absolute top-2 p-2'>
                             <img src="/assets/images/logos/logo_v1.png" className="w-40" alt='logo' />
                         </div>
-                        <div className='flex flex-col items-center justify-center w-full gap-4 h-full bg-white'>
+                        <div className='flex flex-col items-center justify-center w-full gap-4 h-full bg-white p-10'>
                             <div className='flex flex-col items-center justify-center  gap-4 w-full'>
                                 <h2 className='text-4xl font-bold bg-clip-text text-[#CC1D1A]'>{t('welcome')}</h2>
                             </div>

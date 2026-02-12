@@ -14,7 +14,7 @@ export default async function Stats({ params }) {
             namespaces={i18nNamespaces}
             locale={locale}
             resources={resources}>
-            <div className='flex w-full bg-[#F8FAFC] md:flex-row flex-col h-full max-h-screen'>
+            <div className='flex w-full bg-[#F8FAFC] md:flex-row flex-col h-full md:max-h-screen'>
                 <div className='flex md:flex-col bg-white justify-between p-4'>
                     <div className='flex md:flex-col items-center h-screen'>
                         <img

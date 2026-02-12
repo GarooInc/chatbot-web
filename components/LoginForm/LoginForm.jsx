@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { IoEye } from "react-icons/io5";
 import { IoMdEyeOff } from "react-icons/io";
 import { useRouter } from 'next/navigation';
@@ -106,7 +106,7 @@ const LoginForm = () => {
               <button
                 type="button"
                 onClick={togglePasswordVisibility}
-                className="absolute top-1/2 right-2 transform -translate-y-1/2"
+                className="absolute top-1/2 right-2 transform -translate-y-1/2 z-10"
                 disabled={isLoading}
               >
                 {showPassword ? (
@@ -131,10 +131,8 @@ const LoginForm = () => {
               onClick={handleSubmit}
             >
               {isLoading ? (
-                <span className="loading loading-spinner"></span>
-              ) : (
-                t('login')
-              )}
+                <span className="loading loading-spinner text-[#E65F2B]"></span>
+              ) : (t('login'))}
             </button>
           </div>
 
