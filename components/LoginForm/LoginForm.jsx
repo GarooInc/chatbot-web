@@ -131,10 +131,8 @@ const LoginForm = () => {
               onClick={handleSubmit}
             >
               {isLoading ? (
-                <span className="loading loading-spinner"></span>
-              ) : (
-                t('login')
-              )}
+                <span className="loading loading-spinner text-[#E65F2B]"></span>
+              ) : (t('login'))}
             </button>
           </div>
 

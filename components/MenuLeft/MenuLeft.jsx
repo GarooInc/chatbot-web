@@ -25,7 +25,7 @@ const MenuLeft = () => {
   const isActive = (path) => pathname?.includes(path);
   
   return (
-    <div className='flex md:flex-col gap-4 w-full justify-between items-cente h-full'>
+    <div className='flex flex-col gap-4 w-full justify-between items-cente h-full'>
 
       <div className='flex flex-col items-center gap-6'>
         <a href='/chat'>
