@@ -384,10 +384,10 @@ export default function ChatUI() {
                       ) :(
                         <div className="w-full flex flex-col flex-1 overflow-y-scroll">
                           {agents.length > 0 && (
-                          <div className='flex justify-between items-center'>
-                              <h4 className="text-md font-light text-gray-400 mb-2 capitalize py-2 px-4">{t('agents')}</h4>
+                          <div className='flex justify-between items-center md:p-0 px-4'>
+                              <h4 className="text-md font-light text-gray-400 md:mb-2 capitalize py-2 px-4">{t('agents')}</h4>
                             <button
-                              className="h-8 w-8 rounded-full transition-colors duration-200 text-[#CC1D1A] cursor-pointer md:rotate-0 rotate-90"
+                              className="h-8 w-8 rounded-full transition-colors duration-200 text-[#CC1D1A] cursor-pointer md:rotate-0 rotate-90 flex justify-center"
                               onClick={handleShowConversations}
                             >
                               <TbLayoutSidebarLeftCollapseFilled className='w-6 h-6' />
