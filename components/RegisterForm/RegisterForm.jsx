@@ -5,19 +5,20 @@ import { IoMdEyeOff } from "react-icons/io";
 import { useRouter } from 'next/navigation';
 import Toast from '../Toast/Toast';
 import { useTranslation } from 'react-i18next';
-import { signIn } from '@/lib/auth';
+import { signUp } from '@/lib/auth';
 
 
-const LoginForm = () => {
+const RegisterForm = () => {
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
-  const [username, setUsername] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  const navigate =  useRouter();
-
+  const navigate = useRouter();
 
   const showNotification = (message, type = 'error') => {
     setNotification({ message, type });
@@ -31,42 +32,49 @@ const LoginForm = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleUsernameChange = (e) => {
-    setUsername(e.target.value);
-  };
-
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-  
-    if (!username.trim() || !password.trim()) {
+
+    localStorage.setItem('email', email);
+
+    if (!email.trim()  || !password.trim() || !confirmPassword.trim()) {
       showNotification('Por favor complete todos los campos', 'warning');
       setIsLoading(false);
       return;
     }
-  
+
+    if (password !== confirmPassword) {
+      showNotification('Las contraseñas no coinciden', 'error');
+      setIsLoading(false);
+      return;
+    }
+
+    if (password.length < 8) {
+      showNotification('La contraseña debe tener al menos 8 caracteres', 'error');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const session = await signIn(username.trim(), password.trim());
-      const idToken = session.getIdToken().getJwtToken();
-      localStorage.setItem('cognitoToken', idToken);
-      const shortUsername = username.trim().substring(0, 5);
-      localStorage.setItem('username', shortUsername);
-      console.log('Login exitoso. Token:', idToken);
-      showNotification('Inicio de sesión exitoso', 'success');
+      await signUp(email, password);
+      
+      // Guardar email para la verificación
+      localStorage.setItem('email', email);
+      
+      showNotification('Registro exitoso. Verifica tu email.', 'success');
       setTimeout(() => {
         clearNotification();
-        navigate.push('/chat');
-      }, 1000);
+        navigate.push('/verify');
+      }, 1500);
     } catch (error) {
-      showNotification(error.message, 'error');
-      setPassword('');
+      showNotification(error.message || 'Error al registrar usuario', 'error');
     } finally {
       setIsLoading(false);
-      
     }
   };
 
@@ -76,18 +84,19 @@ const LoginForm = () => {
         <form className="card-body" onSubmit={handleSubmit}>
           <div className="form-control">
             <label className="label font-gotham">
-              <span className="text-black">{t('user')}</span>
+              <span className="text-black">Email</span>
             </label>
-            <input 
-              type="text" 
-              placeholder="example@example.com" 
-              className="input input-bordered bg-gray-200 text-black shadow-md w-full rounded-xl" 
-              required 
-              value={username}
-              onChange={handleUsernameChange}
+            <input
+              type="email"
+              placeholder="correo@ejemplo.com"
+              className="input input-bordered bg-gray-200 text-black shadow-md w-full rounded-xl"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
             />
           </div>
+
 
           <div className="form-control">
             <label className="label">
@@ -96,11 +105,11 @@ const LoginForm = () => {
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                placeholder="********"
+                placeholder="Contraseña (mín. 8 caracteres)"
                 className="input input-bordered w-full pr-10 bg-gray-200 text-black shadow-md rounded-xl"
                 required
                 value={password}
-                onChange={handlePasswordChange}
+                onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
               />
               <button
@@ -116,36 +125,59 @@ const LoginForm = () => {
                 )}
               </button>
             </div>
-            <label className="label font-gotham">
-              <a href="#" className="label-text-alt link link-hover text-gray-600">
-                {t('forgot_password')}
-              </a>
+          </div>
+
+          <div className="form-control">
+            <label className="label">
+              <span className="text-black">Confirmar contraseña</span>
             </label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirmar contraseña"
+                className="input input-bordered w-full pr-10 bg-gray-200 text-black shadow-md rounded-xl"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={toggleConfirmPasswordVisibility}
+                className="absolute top-1/2 right-2 transform -translate-y-1/2 z-10"
+                disabled={isLoading}
+              >
+                {showConfirmPassword ? (
+                  <IoMdEyeOff className="h-5 w-5 text-black cursor-pointer" />
+                ) : (
+                  <IoEye className="h-5 w-5 text-black cursor-pointer" />
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="form-control mt-6">
-            <button 
+            <button
               type="submit"
               className="btn w-full bg-[#E65F2B] text-white hover:bg-[#E65F2B] border-none font-gotham rounded-xl"
               disabled={isLoading}
-              onClick={handleSubmit}
             >
               {isLoading ? (
                 <span className="loading loading-spinner text-[#E65F2B]"></span>
-              ) : (t('login'))}
+              ) : (t('register') || 'Registrarse')}
             </button>
           </div>
 
           <div className="form-control mt-4 text-center">
             <p className="text-sm font-gotham text-[#E65F2B]">
-              {t('no_acc')}
+              ¿Ya tienes cuenta?
               {' '}
-              <a 
-                href="/register" 
+              <a
+                href="/"
                 className="link link-hover text-black"
                 tabIndex={isLoading ? -1 : 0}
               >
-                {t('register_here')}
+                Inicia sesión aquí
               </a>
             </p>
           </div>
@@ -163,4 +195,4 @@ const LoginForm = () => {
   );
 };
 
-export default LoginForm;
+export default RegisterForm;
