@@ -1,11 +1,11 @@
 import initTranslations from '@/app/i18n';
 import TranslationsProvider from '@/components/TranslationsProvider/TranslationsProvider';
-import LoginForm from '@/components/LoginForm/LoginForm';
+import RegisterForm from '@/components/RegisterForm/RegisterForm';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 
 const i18nNamespaces = ['login'];
 
-export default async function Login({ params }) {
+export default async function Register({ params }) {
   const { locale } = await params;
   const { t, resources } = await initTranslations(locale, i18nNamespaces);
 
@@ -31,9 +31,9 @@ export default async function Login({ params }) {
                         </div>
                         <div className='flex flex-col items-center justify-center w-full gap-4 h-full bg-white p-10'>
                             <div className='flex flex-col items-center justify-center  gap-4 w-full'>
-                                <h2 className='text-4xl font-bold bg-clip-text text-[#CC1D1A]'>{t('login')}</h2>
+                                <h2 className='text-4xl font-bold bg-clip-text text-[#CC1D1A]'>{t('register')}</h2>
                             </div>
-                            <LoginForm />
+                            <RegisterForm />
                         </div>
                     </div>
                 </div>
