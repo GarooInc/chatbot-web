@@ -1,5 +1,5 @@
 "use client";
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { RiHomeLine } from "react-icons/ri";
 import { IoIosStats } from "react-icons/io";
 import { LuUserRound } from "react-icons/lu";
@@ -8,19 +8,35 @@ import { BsGear } from "react-icons/bs";
 import { IoExitOutline } from "react-icons/io5";
 import { signOut } from '@/lib/auth';
 import { useRouter, usePathname } from 'next/navigation';
+import { fetchProfile } from '@/lib/api';
 
 
 const MenuLeft = () => {
 
   const navigate = useRouter();
   const pathname = usePathname();
-
-  const [showMenuLeft, setShowMenuLeft] = useState(false);
+  const [profileImageUrl, setProfileImageUrl] = useState('');
 
   const handleLogout = () => {
     signOut();
     navigate.push('/');
   };
+
+  useEffect(() => {
+      loadProfileData();
+    }, []);
+  
+    const loadProfileData = async () => {
+      try {
+        // API
+        const response = await fetchProfile();
+        const data = response;
+  
+        setProfileImageUrl(data.profile_image_url);
+      } catch (error) {
+        showNotification('Error al cargar el perfil', 'error');
+      }
+    };
 
   const isActive = (path) => pathname?.includes(path);
   
@@ -50,9 +66,9 @@ const MenuLeft = () => {
             </button>
             <a href='/profile'>
               <img 
-                src="/assets/images/chat/avatar.png"
+                src={profileImageUrl || '/assets/images/default_avatar.png'}
                 alt="Avatar"
-                className="w-10 h-10 rounded-full mb-4"
+                className="w-10 h-10 rounded-full mb-4 object-cover"
               />
             </a>
         </div>
