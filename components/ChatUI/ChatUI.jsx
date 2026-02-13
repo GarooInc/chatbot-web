@@ -341,8 +341,8 @@ export default function ChatUI() {
 
   return (
     <div className='flex w-full bg-[#F8FAFC] flex-row h-screen overflow-hidden'>
-        <div className='flex md:flex-col bg-white justify-between p-4'>
-            <div className='flex flex-col items-center md:h-screen'>
+        <div className='md:h-screen flex md:flex-col bg-white justify-between p-4'>
+            <div className='flex flex-col items-center h-full'>
               <button
                 className={`mb-4 focus:outline-none ${showConversations ? '' : 'cursor-pointer'}`}
                 onClick={
