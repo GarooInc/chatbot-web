@@ -254,7 +254,7 @@ const ProfileView = () => {
                     placeholder="Tu nombre"
                     className="input input-bordered bg-gray-200 text-black shadow-md w-full rounded-xl"
                     required
-                    value={tempDisplayName}
+                    value={tempDisplayName || ""}
                     onChange={(e) => setTempDisplayName(e.target.value)}
                     disabled={isLoading}
                   />
@@ -274,7 +274,7 @@ const ProfileView = () => {
                   />
                   <label className="label">
                     <span className="label-text-alt text-gray-500 font-gotham">
-                      {tempBio.length}/200 caracteres
+                      {tempBio?.length || 0}/200 caracteres
                     </span>
                   </label>
                 </div>
