@@ -34,7 +34,7 @@ const MenuLeft = () => {
         <a href='/stats'>
             <IoIosStats className={`w-10 h-10 cursor-pointer hover:bg-[#F8FAFC] hover:text-gray-700 rounded-full p-2 ${isActive('/stats') ? 'bg-[#475569] text-white' : 'text-[#475569]'}`} />
         </a>
-        <LuUserRound className='w-10 h-10 text-[#475569] cursor-pointer hover:bg-[#F8FAFC] hover:text-gray-700 rounded-full p-2' />
+
         <RiNotificationLine className='w-10 h-10 text-[#475569] cursor-pointer hover:bg-[#F8FAFC] hover:text-gray-700 rounded-full p-2' />
       </div>
 
@@ -48,16 +48,13 @@ const MenuLeft = () => {
                 >
                     <IoExitOutline className='w-6 h-6' />
             </button>
-            <button 
-            className='relative cursor-pointer'
-            onClick={showMenuLeft ? () => setShowMenuLeft(false) : () => setShowMenuLeft(true)}
-            >
-            <img 
-              src="/assets/images/chat/avatar.png"
-              alt="Avatar"
-              className="w-10 h-10 rounded-full mb-4"
-            />
-            </button>
+            <a href='/profile'>
+              <img 
+                src="/assets/images/chat/avatar.png"
+                alt="Avatar"
+                className="w-10 h-10 rounded-full mb-4"
+              />
+            </a>
         </div>
     </div>
   )
