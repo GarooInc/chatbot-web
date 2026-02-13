@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { IoCamera, IoPencil } from "react-icons/io5";
 import Toast from '../Toast/Toast';
 import { useTranslation } from 'react-i18next';
-import { fetchProfile, updateProfile } from '@/lib/api';
+import { fetchProfile, updateProfile, uploadProfileImage } from '@/lib/api';
 
 const ProfileView = () => {
   const { t } = useTranslation();
@@ -96,13 +96,18 @@ const ProfileView = () => {
 
     try {
       // API UPDATE
-      const profileData = {
-        full_name: tempDisplayName.trim(),
-        display_name: tempDisplayName.trim(),
-        bio: tempBio.trim(),
-      };
+        const profileData = {
+            full_name: tempDisplayName.trim(),
+            display_name: tempDisplayName.trim(),
+            bio: tempBio.trim(),
+        };
 
-      await updateProfile(profileData);
+        await updateProfile(profileData);
+
+        if (imageFile) {
+            const imageUrl = await uploadProfileImage(imageFile);
+            setProfileImageUrl(imageUrl);
+        }
 
       setDisplayName(tempDisplayName);
       setBio(tempBio);
